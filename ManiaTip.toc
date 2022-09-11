@@ -1,0 +1,18 @@
+## Interface: 90205
+## Version: @project-version@
+## Title: |cffBB2003Mania|rTip
+## Author: Mania
+## Notes: Tooltip Enhancement Addon
+## SavedVariables: ManiaTipDB
+## OptionalDeps: BetterWardrobe
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+libs\AceConfig-3.0\AceConfig-3.0.lua
+libs\AceGUI-3.0\AceGUI-3.0.lua
+libs\LibDDI-1.0\lib.lua
+
+locales.lua
+core.lua
+config.lua

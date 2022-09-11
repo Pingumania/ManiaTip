@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Project
+        uses: actions/checkout@v2
+
+      - name: Create Changelog
+        uses: pngmn/actions-recent-changelog@main
+        with:
+          input: CHANGELOG.md
+          output: RECENT_CHANGES.md
+
+      - name: Create Package
+        uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
