@@ -5,10 +5,6 @@ ns.BCC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 ns.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 
 local GetQuestGreenRange = ns.Retail and UnitQuestTrivialLevelRange("player") or GetQuestGreenRange()
-local gsub = gsub
-local format = format
-local strmatch = strmatch
-local strfind = strfind
 
 local L = ns.L
 local mt = CreateFrame("Frame")
@@ -307,10 +303,6 @@ local function CalculatePadding(tip)
 	end
 
 	return 0, yPadding
-end
-
-local function GameTooltip_SetWidth(self, width)
-	self:Show()
 end
 
 local function GameTooltip_Show(self)
@@ -704,7 +696,6 @@ local function HookTips()
 	hooksecurefunc(GameTooltip, "SetUnitBuff", SetUnitAura)
 	hooksecurefunc(GameTooltip, "SetUnitDebuff", SetUnitAura)
 	hooksecurefunc(GameTooltip, "Show", GameTooltip_Show)
-	hooksecurefunc(GameTooltip, "SetWidth", GameTooltip_SetWidth)
 	
 	hooksecurefunc(ItemRefTooltip, "SetUnitAura", SetUnitAura)
 	hooksecurefunc(ItemRefTooltip, "SetUnitBuff", SetUnitAura)
@@ -719,7 +710,6 @@ local function HookTips()
 		hooksecurefunc(GameTooltip, "SetLFGDungeonShortageReward", SetLFGDungeonShortageReward)
 		hooksecurefunc(ItemRefTooltip, "ItemRefSetHyperlink", SetHyperlink)
 	end
-	-- hooksecurefunc(ItemRefTooltip, "SetAchievementByID", SetAchievementByID)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -800,4 +790,3 @@ mt:RegisterEvent("PLAYER_LOGIN")
 mt:RegisterEvent("PLAYER_LEVEL_UP")
 mt:RegisterEvent("VARIABLES_LOADED")
 mt:RegisterEvent("ADDON_LOADED")
--- mt:RegisterEvent("UNIT_TARGET") -- Implement dynamic update of target in tooltip?
