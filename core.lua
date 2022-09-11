@@ -339,7 +339,9 @@ local function OnTooltipSetUnit(self)
 	u.name, u.realm = UnitName(unit)
 	u.playerTitle = ""
 	u.reactionColor = cfg["colReactText"..u.reactionIndex]
-	u.isPetWild, u.isPetCompanion = UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion(unit)
+	if ns.Retail then
+		u.isPetWild, u.isPetCompanion = UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion(unit)
+	end
 
 	-- Level + Classification
 	local level = (u.isPetWild or u.isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
@@ -676,7 +678,8 @@ local function HookTips()
 		LibDBIconTooltip,
 		-- Frames
 		QueueStatusFrame,
-		QuestScrollFrame.CampaignTooltip,
+		QuestScrollFrame and QuestScrollFrame.CampaignTooltip,
+		QuestScrollFrame and QuestScrollFrame.StoryTooltip,
 		ChatMenu,
 		VoiceMacroMenu,
 		LanguageMenu,
@@ -700,19 +703,22 @@ local function HookTips()
 	hooksecurefunc(GameTooltip, "SetUnitAura", SetUnitAura)
 	hooksecurefunc(GameTooltip, "SetUnitBuff", SetUnitAura)
 	hooksecurefunc(GameTooltip, "SetUnitDebuff", SetUnitAura)
-	hooksecurefunc(GameTooltip, "SetRecipeReagentItem", SetRecipeReagentItem)
-	hooksecurefunc(GameTooltip, "SetToyByItemID", SetToyByItemID)
-	hooksecurefunc(GameTooltip, "SetLFGDungeonReward", SetLFGDungeonReward)
-	hooksecurefunc(GameTooltip, "SetLFGDungeonShortageReward", SetLFGDungeonShortageReward)
 	hooksecurefunc(GameTooltip, "Show", GameTooltip_Show)
 	hooksecurefunc(GameTooltip, "SetWidth", GameTooltip_SetWidth)
-	hooksecurefunc(ItemRefTooltip, "ItemRefSetHyperlink", SetHyperlink)
+	
 	hooksecurefunc(ItemRefTooltip, "SetUnitAura", SetUnitAura)
 	hooksecurefunc(ItemRefTooltip, "SetUnitBuff", SetUnitAura)
 	hooksecurefunc(ItemRefTooltip, "SetUnitDebuff", SetUnitAura)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 
+	if ns.Retail then
+		hooksecurefunc(GameTooltip, "SetRecipeReagentItem", SetRecipeReagentItem)
+		hooksecurefunc(GameTooltip, "SetToyByItemID", SetToyByItemID)
+		hooksecurefunc(GameTooltip, "SetLFGDungeonReward", SetLFGDungeonReward)
+		hooksecurefunc(GameTooltip, "SetLFGDungeonShortageReward", SetLFGDungeonShortageReward)
+		hooksecurefunc(ItemRefTooltip, "ItemRefSetHyperlink", SetHyperlink)
+	end
 	-- hooksecurefunc(ItemRefTooltip, "SetAchievementByID", SetAchievementByID)
 end
 
@@ -746,7 +752,7 @@ function mt:ADDON_LOADED(event, addon)
 			if type(button.OnLeave) == "function" then hooksecurefunc(button, "OnLeave", MemberList_OnLeave) end
 		end
 	end
-	if addon == "Blizzard_Calendar" then
+	if CalendarContextMenu then
 		-- We have to force the Mixin here
 		Mixin(CalendarContextMenu, BackdropTemplateMixin)
 		ApplyTipBackdrop(CalendarContextMenu)
