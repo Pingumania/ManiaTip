@@ -600,6 +600,7 @@ local function MemberList_OnEnter(self)
 	local color = CLASS_COLORS[classInfo.classFile] or CLASS_COLORS["PRIEST"]
 	GameTooltipTextLeft1:SetFormattedText("%s", ClassColorMarkup[classInfo.classFile]..text)
 	GameTooltip:SetBackdropBorderColor(color.r, color.g, color.b)
+	GameTooltip:Show()
 end
 
 local function MemberList_OnLeave()
