@@ -517,11 +517,10 @@ local function SetLFGDungeonShortageReward(self, dungeonID, rewardArg, rewardID)
 	SetRarityBorderColor(self, link)
 end
 
-local function BattlePetTooltipTemplate_SetBattlePet(tip, data)
-	if data.breedQuality ~= -1 then
-		tip:SetBackdropBorderColor(ITEM_QUALITY_COLORS[data.breedQuality].r, ITEM_QUALITY_COLORS[data.breedQuality].g, ITEM_QUALITY_COLORS[data.breedQuality].b)
-	else
-		tip:SetBackdropBorderColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
+	if C_PetBattles.IsWildBattle() then
+		local rarity = C_PetBattles.GetBreedQuality(owner, index)
+		tip:SetBackdropBorderColor(ITEM_QUALITY_COLORS[rarity-1].r, ITEM_QUALITY_COLORS[rarity-1].g, ITEM_QUALITY_COLORS[rarity-1].b)
 	end
 end
 
@@ -669,6 +668,8 @@ local function HookTips()
 		GarrisonMissionMechanicTooltip,
 		GarrisonMissionMechanicFollowerCounterTooltip,
 		BattlePetTooltip,
+		PetBattlePrimaryUnitTooltip,
+		PetBattlePrimaryAbilityTooltip,
 		-- 3rd party addon tooltips
 		AtlasLootTooltip,
 		LibDBIconTooltip,
@@ -710,7 +711,7 @@ local function HookTips()
 	hooksecurefunc(ItemRefTooltip, "SetUnitDebuff", SetUnitAura)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
-	hooksecurefunc("BattlePetTooltipTemplate_SetBattlePet", BattlePetTooltipTemplate_SetBattlePet)
+
 	-- hooksecurefunc(ItemRefTooltip, "SetAchievementByID", SetAchievementByID)
 end
 
@@ -749,7 +750,7 @@ function mt:ADDON_LOADED(event, addon)
 		Mixin(CalendarContextMenu, BackdropTemplateMixin)
 		ApplyTipBackdrop(CalendarContextMenu)
 	end
-	if addon == "Blizzard_Collections" then
+	if FloatingBattlePetTooltip then
 		Mixin(FloatingBattlePetTooltip, BackdropTemplateMixin)
 		ApplyTipBackdrop(FloatingBattlePetTooltip)
 		for _, name in pairs({"BW_DropDownList"}) do
@@ -761,6 +762,9 @@ function mt:ADDON_LOADED(event, addon)
 				end
 			end
 		end
+	end
+	if ns.Retail and PetBattleUnitTooltip_UpdateForUnit then
+		hooksecurefunc("PetBattleUnitTooltip_UpdateForUnit", PetBattleUnitTooltip_UpdateForUnit)
 	end
 end
 
