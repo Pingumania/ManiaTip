@@ -361,7 +361,7 @@ local function OnTooltipSetUnit(self)
 			if cfg.showSameRealm then
 				if not u.realm then u.realm = GetRealmName() end
 			end
-			nameString = nameString..(u.realm and " ("..u.realm..")" or "")
+			nameString = nameString..(u.realm and "-"..u.realm or "")
 		end
 		-- dc, afk or dnd
 		local status = (not UnitIsConnected(unit) and " <DC>") or (UnitIsAFK(unit) and " <AFK>") or (UnitIsDND(unit) and " <DND>")
