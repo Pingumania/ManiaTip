@@ -455,7 +455,7 @@ end
 local function OnTooltipSetSpell(self)
 	if self:IsForbidden() then return end
 	-- Workaround for TalentsFrame constantly firing OnTooltipSetSpell
-	if self:GetOwner():GetParent():GetParent() == PlayerTalentFrameTalents then
+	if self:GetOwner() and self:GetOwner():GetParent() and self:GetOwner():GetParent():GetParent() == PlayerTalentFrameTalents then
 		-- Skip first
 		if not u.skip then
 			u.skip = true
