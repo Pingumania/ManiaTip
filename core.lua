@@ -558,9 +558,10 @@ local function GTT_SetDefaultAnchor(tip, parent)
 		return
 	end
 
-	tip:SetOwner(parent, "ANCHOR_NONE")
+	local owner = select(2, tip:GetPoint())
+	tip:SetOwner(owner, "ANCHOR_NONE")
 	tip:ClearAllPoints()
-	tip:SetPoint("BOTTOMRIGHT", ADDON_NAME.."Anchor")
+	tip:SetPoint("BOTTOMLEFT", owner, "BOTTOMLEFT")
 end
 
 local function STT_SetBackdropStyle(tip)
@@ -772,7 +773,7 @@ function mt:ADDON_LOADED(event, addon)
 	end
 end
 
-function mt:VARIABLES_LOADED(event)
+function mt:VARIABLES_LOADED()
 	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
 	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
 	GameTooltipStatusBar.bg:SetAllPoints()
@@ -781,11 +782,6 @@ function mt:VARIABLES_LOADED(event)
 
 	UpdateGameTooltipStatusBarTexture()
 	UpdateGameTooltipStatusBarText()
-
-	-- Create Tooltip Anchor
-	local anchor = CreateFrame("Frame", ADDON_NAME.."Anchor", UIParent)
-	anchor:SetSize(64, 64)
-	anchor:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -150, 150)
 
 	-- Hook Tips & Dropdowns
 	HookTips()
