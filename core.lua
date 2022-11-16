@@ -734,13 +734,6 @@ function mt:ADDON_LOADED(event, addon)
 		cfg = setmetatable(ManiaTipDB, { __index = defaults })
 		ns.cfg = cfg
 	end
-	if PetTrackerMultiTip1 then
-		hooksecurefunc(PetTrackerMultiTip1, "SetScale", function(self, scale)
-			if scale ~= 1 then
-				self:SetScale(1)
-			end
-		end)
-	end
 	if addon == "Blizzard_Communities" then
 		local function OnTokenButtonAcquired(_, frame)
 			frame:HookScript("OnEnter", MemberList_OnEnter)
