@@ -311,6 +311,7 @@ local function GameTooltip_Show(self)
 end
 
 local function OnTooltipSetUnit(self)
+	if self ~= GameTooltip then return end
 	if self:IsForbidden() then return end
 	local unit = GetUnit(self)
 
@@ -425,6 +426,7 @@ local function OnTooltipSetUnit(self)
 end
 
 local function OnTooltipSetItem(self)
+	if self ~= GameTooltip and self ~= ItemRefTooltip and self and ItemRefShoppingTooltip1 and self ~= ItemRefShoppingTooltip2 and self ~= ShoppingTooltip1 and self ~= ShoppingTooltip1 then return end
 	if self:IsForbidden() then return end
 	local _, link = self:GetItem()
 	if not link then return end
@@ -452,28 +454,22 @@ local function SetRecipeReagentItem(self, recipeID, reagentIndex)
 	end
 end
 
-local function OnTooltipSetSpell(self)
+local function OnTooltipSetSpell(self, data)
+	if self ~= GameTooltip then return end
 	if self:IsForbidden() then return end
-	-- Workaround for TalentsFrame constantly firing OnTooltipSetSpell
-	if self:GetOwner() and self:GetOwner():GetParent() and self:GetOwner():GetParent():GetParent() == PlayerTalentFrameTalents then
-		-- Skip first
-		if not u.skip then
-			u.skip = true
-			return
-		end
-	end
-	local _, spellId = self:GetSpell()
-	if spellId then
-		self:AddLine(L["SpellID"]..spellId, unpack(cfg.infoColor))
+
+	if data.id then
+		self:AddLine(L["SpellID"]..data.id, unpack(cfg.infoColor))
 		self:Show()
 	end
 end
 
-local function SetUnitAura(self, unit, index, filter)
+local function SetUnitAura(self, data)
+	if self ~= GameTooltip and self ~= ItemRefTooltip then return end
 	if self:IsForbidden() then return end
-	local _, _, _, _, _, _, _, _, _, spellId = UnitAura(unit, index, filter)
-	if spellId and spellId ~= 0 then
-		self:AddLine(L["SpellID"]..spellId, unpack(cfg.infoColor))
+
+	if data.id and data.id ~= 0 then
+		self:AddLine(L["AuraID"]..data.id, unpack(cfg.infoColor))
 		self:Show()
 	end
 end
@@ -684,33 +680,16 @@ local function HookTips()
 		ApplyTipBackdrop(tip)
 	end
 
-	GameTooltip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
-	GameTooltip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-	GameTooltip:HookScript("OnTooltipSetSpell", OnTooltipSetSpell)
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
-	ShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-	ShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-	ItemRefShoppingTooltip1:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-	ItemRefShoppingTooltip2:HookScript("OnTooltipSetItem", OnTooltipSetItem)
 	GameTooltipStatusBar:HookScript("OnValueChanged", StatusBar_OnValueChanged)
-	hooksecurefunc(GameTooltip, "SetUnitAura", SetUnitAura)
-	hooksecurefunc(GameTooltip, "SetUnitBuff", SetUnitAura)
-	hooksecurefunc(GameTooltip, "SetUnitDebuff", SetUnitAura)
-	hooksecurefunc(GameTooltip, "Show", GameTooltip_Show)
-	
-	hooksecurefunc(ItemRefTooltip, "SetUnitAura", SetUnitAura)
-	hooksecurefunc(ItemRefTooltip, "SetUnitBuff", SetUnitAura)
-	hooksecurefunc(ItemRefTooltip, "SetUnitDebuff", SetUnitAura)
+	-- hooksecurefunc(GameTooltip, "Show", GameTooltip_Show)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 
-	if ns.Retail then
-		hooksecurefunc(GameTooltip, "SetRecipeReagentItem", SetRecipeReagentItem)
-		hooksecurefunc(GameTooltip, "SetToyByItemID", SetToyByItemID)
-		hooksecurefunc(GameTooltip, "SetLFGDungeonReward", SetLFGDungeonReward)
-		hooksecurefunc(GameTooltip, "SetLFGDungeonShortageReward", SetLFGDungeonShortageReward)
-		hooksecurefunc(ItemRefTooltip, "ItemRefSetHyperlink", SetHyperlink)
-	end
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, SetUnitAura)
 end
 
 --------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-local ADDON_NAME, ns = ...
+local _, ns = ...
 
 local L = {}
 L["targetYouText"] = "Text shown when you are targeted"
@@ -50,6 +50,8 @@ L["itemQualityBorder"] = ""
 L["healthBarSettings"] = "Healthbar settings"
 L["ItemID"] = "ItemID: "
 L["SpellID"] = "SpellID: "
+L["AuraID"] = "AuraID: "
+L["ID"] = "ID: "
 
 L["None"] = "None"
 L["Thin"] = "Thin"
