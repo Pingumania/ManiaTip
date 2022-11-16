@@ -648,9 +648,7 @@ local function HookTips()
 		ItemRefShoppingTooltip2,
 		FriendsTooltip,
 		EmbeddedItemTooltip,
-		GlueTooltip,
 		QuickKeybindTooltip,
-		GlueNoHeaderTooltip,
 		GameNoHeaderTooltip,
 		GameSmallHeaderTooltip,
 		-- Blizzard addon tooltips
