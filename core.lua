@@ -535,16 +535,18 @@ end
 local function StatusBar_OnValueChanged(self, value)
 	if self:IsForbidden() or not value then return end
 
-	local min, max = self:GetMinMaxValues()
-	if (value < min) or (value > max) then
-		return
-	end
-	SetFormattedBarValues(value, max)
-
 	local unit = GetUnit(self:GetParent())
 	if not unit then
 		return
 	end
+
+	local value = UnitHealth(unit)
+	local max = UnitHealthMax(unit)
+
+	if (value < 0) or (value > max) then
+		return
+	end
+	SetFormattedBarValues(value, max)
 
 	local _, classID = UnitClass(unit)
 	if UnitIsPlayer(unit) then
