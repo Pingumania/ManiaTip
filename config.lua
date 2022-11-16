@@ -46,13 +46,13 @@ local function CreateConfig()
 				type = "select",
 				width = 1.5,
 				values = statusbars,
-				get = function(info)
+				get = function()
 					for i, v in next, statusbars do
-						if v == ns.cfg[info[#info]] then return i end
+						if v == ns.cfg.barTexture then return i end
 					end
 				end,
-				set = function(info, value)
-					ns.cfg[info[#info]] = statusbars[value]
+				set = function(_, value)
+					ns.cfg.barTexture = statusbars[value]
 					ns.UpdateGameTooltipStatusBarTexture()
 				end,
 				itemControl = "DDI-Statusbar",
@@ -68,13 +68,13 @@ local function CreateConfig()
 				type = "select",
 				width = 1.5,
 				values = fonts,
-				get = function(info)
+				get = function()
 					for i, v in next, fonts do
-						if v == ns.cfg[info[#info]] then return i end
+						if v == ns.cfg.barFontFace then return i end
 					end
 				end,
-				set = function(info, value)
-					ns.cfg[info[#info]] = fonts[value]
+				set = function(_, value)
+					ns.cfg.barFontFace = fonts[value]
 					ns.UpdateGameTooltipStatusBarText()
 				end,
 				itemControl = "DDI-Font",
