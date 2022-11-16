@@ -6,14 +6,16 @@
 ## Notes: Tooltip Enhancement Addon
 
 ## SavedVariables: ManiaTipDB
-## OptionalDeps: BetterWardrobe, RaiderIO
+## OptionalDeps: BetterWardrobe, RaiderIO, Ace3, LibDDI-1.0, LibSharedMedia-3.0
 
-libs\LibStub\LibStub.lua
-libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
-libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
-libs\AceGUI-3.0\AceGUI-3.0.xml
-libs\AceConfig-3.0\AceConfig-3.0.xml
-libs\LibDDI-1.0\lib.lua
+#@non-debug@
+# libs\LibStub\LibStub.lua
+# libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+# libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
+# libs\AceGUI-3.0\AceGUI-3.0.xml
+# libs\AceConfig-3.0\AceConfig-3.0.xml
+# libs\LibDDI-1.0\lib.lua
+#@end-non-debug@
 
 locales.lua
 core.lua
