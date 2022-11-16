@@ -108,7 +108,7 @@ local function StripTextures(obj)
 		"Center"
 	}
 
-	for index, pieceName in ipairs(nineSlicePieces) do
+	for _, pieceName in ipairs(nineSlicePieces) do
 		local region = obj[pieceName]
 		if region then
 			region:SetTexture(nil)
