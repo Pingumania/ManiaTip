@@ -273,8 +273,8 @@ end
 
 local function GetEmptyLineIndex(tip)
 	local frame
-	for i = 2, 15  do
-		local frame = _G["GameTooltipTextLeft"..i]
+	for i = 2, tip:NumLines()  do
+		frame = _G["GameTooltipTextLeft"..i]
 		if frame and frame:GetStringHeight() == 0 then
 			return i
 		end
