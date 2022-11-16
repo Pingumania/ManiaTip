@@ -728,7 +728,6 @@ end
 
 function mt:ADDON_LOADED(event, addon)
 	if addon == "ManiaTip" then
-		-- Init config
 		if not ManiaTipDB then
 			ManiaTipDB = {}
 		end
@@ -743,12 +742,16 @@ function mt:ADDON_LOADED(event, addon)
 		end)
 	end
 	if addon == "Blizzard_Communities" then
-		for _, button in pairs(_G.CommunitiesFrame.MemberList.ListScrollFrame.buttons) do
-			button:HookScript("OnEnter", MemberList_OnEnter)
-			button:HookScript("OnLeave", MemberList_OnLeave)
-			if type(button.OnEnter) == "function" then hooksecurefunc(button, "OnEnter", MemberList_OnEnter) end
-			if type(button.OnLeave) == "function" then hooksecurefunc(button, "OnLeave", MemberList_OnLeave) end
+		local function OnTokenButtonAcquired(_, frame)
+			frame:HookScript("OnEnter", MemberList_OnEnter)
+			frame:HookScript("OnLeave", MemberList_OnLeave)
+			if type(frame.OnEnter) == "function" then hooksecurefunc(frame, "OnEnter", MemberList_OnEnter) end
+			if type(frame.OnLeave) == "function" then hooksecurefunc(frame, "OnLeave", MemberList_OnLeave) end
 		end
+
+		local iterateExisting = true
+		local owner = nil
+		ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, OnTokenButtonAcquired, owner, iterateExisting)
 	end
 	if CalendarContextMenu then
 		-- We have to force the Mixin here
