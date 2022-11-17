@@ -45,11 +45,6 @@ local defaults = {
 	colReactBack6 = { 0.13, 0.31, 0.51 },
 	colReactBack7 = { 0.35, 0.35, 0.35 },
 
-	tipBackdropBG = "Interface\\Tooltips\\UI-Tooltip-Background",
-	tipBackdropEdge = "Interface\\Tooltips\\UI-Tooltip-Border",
-	backdropEdgeSize = 14,
-	backdropInsets = 3,
-
 	tipColor = { 0.06, 0.06, 0.06, 1 },
 	tipBorderColor = { 0.3, 0.3, 0.3, 1 },
 
@@ -94,28 +89,6 @@ end
 -- Helper Functions
 --------------------------------------------------------------------------------------------------------
 
--- Strip textures form object
-local function StripTextures(obj)
-	local nineSlicePieces = {
-		"TopLeftCorner",
-		"TopRightCorner",
-		"BottomLeftCorner",
-		"BottomRightCorner",
-		"TopEdge",
-		"BottomEdge",
-		"LeftEdge",
-		"RightEdge",
-		"Center"
-	}
-
-	for _, pieceName in ipairs(nineSlicePieces) do
-		local region = obj[pieceName]
-		if region then
-			region:SetTexture(nil)
-		end
-	end
-end
-
 local function GetDifficultyLevelColor(level)
 	level = level - mt.playerLevel
 	if level > 4 then
@@ -131,16 +104,6 @@ local function GetDifficultyLevelColor(level)
 	end
 end
 
--- Get reaction index
---[[
-	1 = Tapped
-	2 = Hostile
-	3 = Caution
-	4 = Neutral
-	5 = Friendly NPC or PvP Player
-	6 = Friendly Player
-	7 = Dead
---]]
 local function GetUnitReactionIndex(unit)
 	if (UnitIsDead(unit)) then
 		return 7
@@ -187,28 +150,17 @@ end
 -- Functions
 --------------------------------------------------------------------------------------------------------
 
-local function ApplyTipBackdrop(tip)
+local function SetDefaultNineSliceColor(tip)
 	if not tip or tip.IsEmbedded or tip:IsForbidden() then return end
-	if not tip.SetBackdrop then
-		Mixin(tip, BackdropTemplateMixin)
-	end
+
 	if tip.NineSlice then
-		StripTextures(tip.NineSlice)
+		tip.NineSlice:SetCenterColor(unpack(cfg.tipColor))
+		tip.NineSlice:SetBorderColor(unpack(cfg.tipBorderColor))
 	end
-	tip:SetBackdrop({
-		bgFile = cfg.tipBackdropBG,
-		edgeFile = cfg.tipBackdropEdge,
-		tile = false,
-		tileEdge = false,
-		edgeSize = cfg.backdropEdgeSize,
-		insets = { left = cfg.backdropInsets, right = cfg.backdropInsets, top = cfg.backdropInsets, bottom = cfg.backdropInsets },
-	})
-	tip:SetBackdropColor(unpack(cfg.tipColor))
-	tip:SetBackdropBorderColor(unpack(cfg.tipBorderColor))
 end
 
-local function GetUnit(self)
-	local _, unit = self:GetUnit()
+local function GetUnit(tip)
+	local _, unit = tip:GetUnit()
 
 	if not unit then
 		local mouseFocus = GetMouseFocus()
@@ -218,13 +170,11 @@ local function GetUnit(self)
 	return unit
 end
 
-local function GetLevelLine(self)
-	local frame, text
-	for i = 2, self:NumLines() do
-		frame = _G["GameTooltipTextLeft"..i]
-		if frame then text = frame:GetText() end
+local function GetLevelLine(data)
+	for i = 2, 3 do
+		local text = data.lines[i] and data.lines[i].leftText
 		if text and strfind(text, LEVEL) then
-			return frame
+			return i
 		end
 	end
 
@@ -242,11 +192,12 @@ local function RemoveUnwantedLines(tip)
 	end
 end
 
-local function SetRarityBorderColor(self, itemLinkOrID)
-	if self.IsEmbedded then return end
+local function SetNineSliceBorderColor(tip, itemLinkOrID)
+	if tip.IsEmbedded then return end
 
 	if itemCache[itemLinkOrID] then
-		self:SetBackdropBorderColor(ITEM_QUALITY_COLORS[itemCache[itemLinkOrID]].r, ITEM_QUALITY_COLORS[itemCache[itemLinkOrID]].g, ITEM_QUALITY_COLORS[itemCache[itemLinkOrID]].b)
+		local r, g, b = GetItemQualityColor(itemCache[itemLinkOrID])
+		tip.NineSlice:SetBorderColor(r, g, b)
 		return
 	end
 
@@ -260,7 +211,8 @@ local function SetRarityBorderColor(self, itemLinkOrID)
 	-- This function also executes when the item is already loaded
 	item:ContinueOnItemLoad(function()
 		local rarity = item:GetItemQuality()
-		self:SetBackdropBorderColor(ITEM_QUALITY_COLORS[rarity].r, ITEM_QUALITY_COLORS[rarity].g, ITEM_QUALITY_COLORS[rarity].b)
+		local r, g, b = GetItemQualityColor(rarity)
+		tip.NineSlice:SetBorderColor(r, g, b)
 		itemCache[itemLinkOrID] = rarity
 	end)
 end
@@ -271,15 +223,15 @@ local function GetTarget(unit)
 	return target, targetName
 end
 
-local function GetEmptyLineIndex(tip)
-	local frame
-	for i = 2, tip:NumLines()  do
-		frame = _G["GameTooltipTextLeft"..i]
-		if frame and frame:GetStringHeight() == 0 then
-			return i
-		end
-	end
-end
+-- local function GetEmptyLineIndex(tip)
+-- 	local frame
+-- 	for i = 2, tip:NumLines()  do
+-- 		frame = _G["GameTooltipTextLeft"..i]
+-- 		if frame and frame:GetStringHeight() == 0 then
+-- 			return i
+-- 		end
+-- 	end
+-- end
 
 local function GetEmptyLines(tip)
 	local frame
@@ -305,64 +257,62 @@ local function CalculatePadding(tip)
 	return 0, yPadding
 end
 
-local function GameTooltip_Show(self)
-	if self:IsForbidden() or not u.unit then return end
-	self:SetPadding(CalculatePadding(self))
+local function GameTooltip_Show(tip)
+	if tip:IsForbidden() or not u.unit then return end
+	tip:SetPadding(CalculatePadding(tip))
 end
 
-local function OnTooltipSetUnit(self)
-	if self ~= GameTooltip then return end
-	if self:IsForbidden() then return end
-	local unit = GetUnit(self)
+local function OnTooltipSetUnit(tip, data)
+	if tip ~= GameTooltip then return end
+	if tip:IsForbidden() then return end
+
+	local unit = GetUnit(tip)
 
 	if not unit then
-		self:Hide()
+		tip:Hide()
 		return
 	end
 
 	u.unit = unit
-	u.isPlayer = UnitIsPlayer(unit)
-	u.class, u.classID = UnitClass(unit)
-	u.reactionIndex = GetUnitReactionIndex(unit)
-	u.guild = GetGuildInfo(unit)
+	local isPlayer = UnitIsPlayer(unit)
+	local class, classID = UnitClass(unit)
+	local reactionIndex = GetUnitReactionIndex(unit)
+	local fullName = data.lines[1].leftText
+	local reactionColor = cfg["colReactText"..reactionIndex]
+	local isPetWild, isPetCompanion = UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion(unit)
 
-	RemoveUnwantedLines(self)
-
-	-- Obtain unit properties
-	u.name, u.realm = UnitName(unit)
-	u.playerTitle = ""
-	u.reactionColor = cfg["colReactText"..u.reactionIndex]
-	if ns.Retail then
-		u.isPetWild, u.isPetCompanion = UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion(unit)
-	end
+	RemoveUnwantedLines(tip)
 
 	-- Level + Classification
-	local level = (u.isPetWild or u.isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
+	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
 	local classification = UnitClassification(unit) or ""
-	local unitClass = u.isPlayer and format("%s %s", UnitRace(unit) or "", ClassColorMarkup[u.classID]..(UnitClass(unit) or "")) or (u.isPetWild or u.isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
+	local unitClass = isPlayer and format("%s %s", UnitRace(unit) or "", ClassColorMarkup[classID]..(UnitClass(unit) or "")) or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
 	local levelColor = (UnitCanAttack(unit, "player") or UnitCanAttack("player", unit)) and GetDifficultyLevelColor(level ~= -1 and level or 500) or cfg.colLevel
 	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
-	local levelLine = GetLevelLine(self)
+	local levelLine = GetLevelLine(data)
 	if levelLine then
-		levelLine:SetFormattedText("%s %s", levelColor..levelText.."|r", unitClass)
+		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s", levelColor..levelText.."|r", unitClass)
 	end
 
 	-- Generate Line Modification
-	if u.isPlayer then
-		local nameString = ClassColorMarkup[u.classID]..u.name
+	if isPlayer then
+		local guild = GetGuildInfo(unit)
+		local name, realm = UnitName(unit)
+
+		local nameString = ClassColorMarkup[classID]..name
 		-- Name
 		if cfg.showPlayerTitle then
-			if u.realm then
-				nameString = ClassColorMarkup[u.classID]..gsub(GameTooltipTextLeft1:GetText(), "-"..u.realm, "")
+			if realm then
+				nameString = ClassColorMarkup[classID]..gsub(fullName, "-"..realm, "")
 			else
-				nameString = ClassColorMarkup[u.classID]..GameTooltipTextLeft1:GetText()
+				nameString = ClassColorMarkup[classID]..fullName
 			end
 		end
 		if cfg.showRealm then
 			if cfg.showSameRealm then
-				if not u.realm then u.realm = GetRealmName() end
+				if not realm then realm = GetRealmName() end
 			end
-			nameString = nameString..(u.realm and "-"..u.realm or "")
+			nameString = nameString..(realm and "-"..realm or "")
 		end
 		-- dc, afk or dnd
 		local status = (not UnitIsConnected(unit) and " <DC>") or (UnitIsAFK(unit) and " <AFK>") or (UnitIsDND(unit) and " <DND>")
@@ -371,20 +321,17 @@ local function OnTooltipSetUnit(self)
 		end
 		GameTooltipTextLeft1:SetFormattedText("%s", nameString)
 		-- Guild
-		if u.guild then
+		if guild then
 			local pGuild = GetGuildInfo("player")
-			local guildColor = (u.guild == pGuild and cfg.colSameGuild or cfg.colorGuildByReaction and u.reactionColor or cfg.colGuild)
-			GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, u.guild)
+			local guildColor = (guild == pGuild and cfg.colSameGuild or cfg.colorGuildByReaction and reactionColor or cfg.colGuild)
+			GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, guild)
 		end
 
-		local color = CLASS_COLORS[u.classID] or CLASS_COLORS["PRIEST"]
-		self:SetBackdropBorderColor(color.r, color.g, color.b)
+		local color = CLASS_COLORS[classID] or CLASS_COLORS["PRIEST"]
+		tip.NineSlice:SetBorderColor(color.r, color.g, color.b)
 	else
-		if u.title and (u.title ~= " ") then
-			GameTooltipTextLeft2:SetFormattedText("%s<%s>", u.reactionColor, u.title)
-		end
-		GameTooltipTextLeft1:SetFormattedText("%s", u.reactionColor..u.name)
-		self:SetBackdropBorderColor(unpack(cfg["colReactBack"..u.reactionIndex]))
+		GameTooltipTextLeft1:SetFormattedText("%s", reactionColor..fullName)
+		tip.NineSlice:SetBorderColor(unpack(cfg["colReactBack"..reactionIndex]))
 	end
 
 	-- Target
@@ -407,121 +354,101 @@ local function OnTooltipSetUnit(self)
 			end
 		end
 
-		local frame
-		if GetEmptyLineIndex(self) then
-			frame = _G["GameTooltipTextLeft"..GetEmptyLineIndex(self)]
-		else
-			self:AddLine(" ", nil, nil, nil, 1)
-			frame = _G["GameTooltipTextLeft"..self:NumLines()]
-		end
-		frame:SetText(targetLine, unpack(cfg.infoColor))
+		local line
+		-- if GetEmptyLineIndex(tip) then
+		-- 	line = _G["GameTooltipTextLeft"..GetEmptyLineIndex(tip)]
+		-- else
+			tip:AddLine(" ", nil, nil, nil, 1)
+			line = _G["GameTooltipTextLeft"..tip:NumLines()]
+		-- end
+		line:SetText(targetLine, unpack(cfg.infoColor))
 	end
 
 	local textWidth = _G[ADDON_NAME.."StatusBarHealthText"]:GetStringWidth()
 	if textWidth and GameTooltipStatusBar:IsShown() then
-		self:SetMinimumWidth(textWidth + 12)
+		tip:SetMinimumWidth(textWidth + 12)
 	end
 
-	self:Show()
+	tip:Show()
 end
 
-local function OnTooltipSetItem(self)
-	if self ~= GameTooltip and self ~= ItemRefTooltip and self and ItemRefShoppingTooltip1 and self ~= ItemRefShoppingTooltip2 and self ~= ShoppingTooltip1 and self ~= ShoppingTooltip1 then return end
-	if self:IsForbidden() then return end
-	local _, link = self:GetItem()
+local function OnTooltipSetItem(tip, data)
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip1 then return end
+	if tip:IsForbidden() then return end
+
+	if not tip.GetItem then
+		Mixin(tip, GameTooltipDataMixin)
+	end
+
+	local _, link = tip:GetItem()
 	if not link then return end
 
-	SetRarityBorderColor(self, link)
+	SetNineSliceBorderColor(tip, link)
 
 	local id = strmatch(link, "item:(%d+)")
 	if id and id ~= "" then
-		self:AddLine(L["ItemID"]..id, unpack(cfg.infoColor))
-		self:Show()
+		tip:AddLine(L["ItemID"]..id, unpack(cfg.infoColor))
+		tip:Show()
 	end
 end
 
-local function SetRecipeReagentItem(self, recipeID, reagentIndex)
-	if self:IsForbidden() then return end
+local function SetRecipeReagentItem(tip, recipeID, reagentIndex)
+	if tip:IsForbidden() then return end
 	local link = C_TradeSkillUI.GetRecipeReagentItemLink(recipeID, reagentIndex)
 	if not link then return end
 
-	SetRarityBorderColor(self, link)
+	SetNineSliceBorderColor(tip, link)
 
 	local id = strmatch(link, "item:(%d+)")
 	if id and id ~= "" then
-		self:AddLine(L["ItemID"]..id, unpack(cfg.infoColor))
-		self:Show()
+		tip:AddLine(L["ItemID"]..id, unpack(cfg.infoColor))
+		tip:Show()
 	end
 end
 
-local function OnTooltipSetSpell(self, data)
-	if self ~= GameTooltip then return end
-	if self:IsForbidden() then return end
+local function OnTooltipSetSpell(tip, data)
+	if tip ~= GameTooltip then return end
+	if tip:IsForbidden() then return end
 
 	if data.id then
-		self:AddLine(L["SpellID"]..data.id, unpack(cfg.infoColor))
-		self:Show()
+		tip:AddLine(L["SpellID"]..data.id, unpack(cfg.infoColor))
+		tip:Show()
 	end
 end
 
-local function SetUnitAura(self, data)
-	if self ~= GameTooltip and self ~= ItemRefTooltip then return end
-	if self:IsForbidden() then return end
+local function OnTooltipSetUnitAura(tip, data)
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip then return end
+	if tip:IsForbidden() then return end
 
-	if data.id and data.id ~= 0 then
-		self:AddLine(L["AuraID"]..data.id, unpack(cfg.infoColor))
-		self:Show()
+	if data.id then
+		tip:AddLine(L["AuraID"]..data.id, unpack(cfg.infoColor))
+		tip:Show()
 	end
 end
 
-local function SetHyperlink(self, link)
-	if self:IsForbidden() then return end
-	if cfg.itemQualityBorder then
-		if self:NumLines() > 0 then
-			SetRarityBorderColor(self, link)
-		end
+local function OnTooltipSetToy(tip, data)
+	if tip ~= GameTooltip then return end
+	if tip:IsForbidden() then return end
+
+	if data.id then
+		SetNineSliceBorderColor(tip, data.id)
+		tip:AddLine(L["ItemID"]..data.id, unpack(cfg.infoColor))
+		tip:Show()
 	end
-end
-
-local function SetToyByItemID(self, id)
-	if self:IsForbidden() then return end
-	if not id then return end
-
-	SetRarityBorderColor(self, id)
-	u.doNotReset = true
-end
-
-local function SetLFGDungeonReward(self, dungeonID, rewardID)
-	if self:IsForbidden() then return end
-	local link = GetLFGDungeonRewardLink(dungeonID, rewardID)
-	if not link then return end
-
-	SetRarityBorderColor(self, link)
-end
-
-local function SetLFGDungeonShortageReward(self, dungeonID, rewardArg, rewardID)
-	if self:IsForbidden() then return end
-	local link = GetLFGDungeonShortageRewardLink(dungeonID, rewardArg, rewardID)
-	if not link then return end
-
-	SetRarityBorderColor(self, link)
 end
 
 local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 	if C_PetBattles.IsWildBattle() then
 		local rarity = C_PetBattles.GetBreedQuality(owner, index)
-		tip:SetBackdropBorderColor(ITEM_QUALITY_COLORS[rarity-1].r, ITEM_QUALITY_COLORS[rarity-1].g, ITEM_QUALITY_COLORS[rarity-1].b)
+		tip.NineSlice:SetBorderColor(ITEM_QUALITY_COLORS[rarity-1].r, ITEM_QUALITY_COLORS[rarity-1].g, ITEM_QUALITY_COLORS[rarity-1].b)
 	end
 end
 
-local function OnTooltipCleared(self)
-	if self:IsForbidden() then return end
-	-- reset padding and color
-	if not u.doNotReset then
-		self:SetBackdropBorderColor(unpack(cfg.tipBorderColor))
-	end
-	if self.ItemTooltip and not self.ItemTooltip:IsShown() then
-		self:SetPadding(0, 0)
+local function OnTooltipCleared(tip)
+	if tip:IsForbidden() then return end
+
+	if tip.ItemTooltip and not tip.ItemTooltip:IsShown() then
+		tip:SetPadding(0, 0)
 	end
 
 	-- wipe the vars
@@ -563,7 +490,7 @@ local function GTT_SetDefaultAnchor(tip, parent)
 end
 
 local function STT_SetBackdropStyle(tip)
-	ApplyTipBackdrop(tip)
+	SetDefaultNineSliceColor(tip)
 end
 
 local function MemberList_OnEnter(self)
@@ -592,7 +519,6 @@ local function MemberList_OnEnter(self)
 	local classInfo = C_CreatureInfo.GetClassInfo(classID)
 	local color = CLASS_COLORS[classInfo.classFile] or CLASS_COLORS["PRIEST"]
 	GameTooltipTextLeft1:SetFormattedText("%s", ClassColorMarkup[classInfo.classFile]..text)
-	GameTooltip:SetBackdropBorderColor(color.r, color.g, color.b)
 	GameTooltip:Show()
 end
 
@@ -630,7 +556,7 @@ local function HookDropdowns()
 		for i = 1, UIDROPDOWNMENU_MAXLEVELS do
 			local menu = _G[name..i.."MenuBackdrop"]
 			if menu then
-				ApplyTipBackdrop(menu)
+				SetDefaultNineSliceColor(menu)
 			end
 		end
 	end
@@ -677,7 +603,7 @@ local function HookTips()
 	}
 
 	for _, tip in next, tips do
-		ApplyTipBackdrop(tip)
+		SetDefaultNineSliceColor(tip)
 	end
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
@@ -689,7 +615,36 @@ local function HookTips()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
-	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, SetUnitAura)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
+
+	-- { Name = "Item", Type = "TooltipDataType", EnumValue = 0 },
+	-- { Name = "Spell", Type = "TooltipDataType", EnumValue = 1 },
+	-- { Name = "Unit", Type = "TooltipDataType", EnumValue = 2 },
+	-- { Name = "Corpse", Type = "TooltipDataType", EnumValue = 3 },
+	-- { Name = "Object", Type = "TooltipDataType", EnumValue = 4 },
+	-- { Name = "Currency", Type = "TooltipDataType", EnumValue = 5 },
+	-- { Name = "BattlePet", Type = "TooltipDataType", EnumValue = 6 },
+	-- { Name = "UnitAura", Type = "TooltipDataType", EnumValue = 7 },
+	-- { Name = "AzeriteEssence", Type = "TooltipDataType", EnumValue = 8 },
+	-- { Name = "CompanionPet", Type = "TooltipDataType", EnumValue = 9 },
+	-- { Name = "Mount", Type = "TooltipDataType", EnumValue = 10 },
+	-- { Name = "PetAction", Type = "TooltipDataType", EnumValue = 11 },
+	-- { Name = "Achievement", Type = "TooltipDataType", EnumValue = 12 },
+	-- { Name = "EnhancedConduit", Type = "TooltipDataType", EnumValue = 13 },
+	-- { Name = "EquipmentSet", Type = "TooltipDataType", EnumValue = 14 },
+	-- { Name = "InstanceLock", Type = "TooltipDataType", EnumValue = 15 },
+	-- { Name = "PvPBrawl", Type = "TooltipDataType", EnumValue = 16 },
+	-- { Name = "RecipeRankInfo", Type = "TooltipDataType", EnumValue = 17 },
+	-- { Name = "Totem", Type = "TooltipDataType", EnumValue = 18 },
+	-- { Name = "Toy", Type = "TooltipDataType", EnumValue = 19 },
+	-- { Name = "CorruptionCleanser", Type = "TooltipDataType", EnumValue = 20 },
+	-- { Name = "MinimapMouseover", Type = "TooltipDataType", EnumValue = 21 },
+	-- { Name = "Flyout", Type = "TooltipDataType", EnumValue = 22 },
+	-- { Name = "Quest", Type = "TooltipDataType", EnumValue = 23 },
+	-- { Name = "QuestPartyProgress", Type = "TooltipDataType", EnumValue = 24 },
+	-- { Name = "Macro", Type = "TooltipDataType", EnumValue = 25 },
+	-- { Name = "Debug", Type = "TooltipDataType", EnumValue = 26 },
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -726,19 +681,15 @@ function mt:ADDON_LOADED(event, addon)
 		ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, OnTokenButtonAcquired, owner, iterateExisting)
 	end
 	if CalendarContextMenu then
-		-- We have to force the Mixin here
-		Mixin(CalendarContextMenu, BackdropTemplateMixin)
-		ApplyTipBackdrop(CalendarContextMenu)
+		SetDefaultNineSliceColor(CalendarContextMenu)
 	end
 	if FloatingBattlePetTooltip then
-		Mixin(FloatingBattlePetTooltip, BackdropTemplateMixin)
-		ApplyTipBackdrop(FloatingBattlePetTooltip)
+		SetDefaultNineSliceColor(FloatingBattlePetTooltip)
 		for _, name in pairs({"BW_DropDownList"}) do
 			for i = 1, UIDROPDOWNMENU_MAXLEVELS do
 				local menu = _G[name..i.."MenuBackdrop"]
 				if menu then
-					Mixin(menu, BackdropTemplateMixin)
-					ApplyTipBackdrop(menu)
+					SetDefaultNineSliceColor(menu)
 				end
 			end
 		end
