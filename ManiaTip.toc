@@ -1,7 +1,7 @@
 ## Interface: 100000
 ## Version: @project-version@
 
-## Title: |cffBB2003Mania|rTip
+## Title: ManiaTip
 ## Author: Pingumania
 ## Notes: Tooltip Enhancement Addon
 
