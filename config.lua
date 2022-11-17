@@ -38,10 +38,33 @@ local function CreateConfig()
 			header1 = {
 				order = 20,
 				type = "header",
+				name = L["colorSettings"],
+			},
+			tipColor = {
+				order = 21,
+				name = L["tipColor"],
+				type = "color",
+				get = function() return unpack(ns.cfg.tipColor) end,
+				set = function(_, r, g, b)
+					ns.cfg.tipColor = {r,g,b,1}
+				end,
+			},
+			tipBorderColor = {
+				order = 22,
+				name = L["tipBorderColor"],
+				type = "color",
+				get = function() return unpack(ns.cfg.tipBorderColor) end,
+				set = function(_, r, g, b)
+					ns.cfg.tipBorderColor = {r,g,b,1}
+				end,
+			},
+			header2 = {
+				order = 30,
+				type = "header",
 				name = L["healthBarSettings"],
 			},
 			barTexture = {
-				order = 21,
+				order = 31,
 				name = L["barTexture"],
 				type = "select",
 				width = 1.5,
@@ -58,12 +81,12 @@ local function CreateConfig()
 				itemControl = "DDI-Statusbar",
 			},
 			spacer1 = {
-				order = 22,
+				order = 32,
 				type = "description",
 				name = "",
 			},
 			barFontFace = {
-				order = 23,
+				order = 33,
 				name = L["barFontFace"],
 				type = "select",
 				width = 1.5,
@@ -80,13 +103,13 @@ local function CreateConfig()
 				itemControl = "DDI-Font",
 			},
 			spacer2 = {
-				order = 24,
+				order = 34,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontSize = {
-				order = 25,
+				order = 35,
 				name = L["barFontSize"],
 				type = "range",
 				-- width = "half",
@@ -99,13 +122,13 @@ local function CreateConfig()
 				end,
 			},
 			spacer3 = {
-				order = 26,
+				order = 36,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontFlags = {
-				order = 27,
+				order = 37,
 				name = L["barFontFlags"],
 				type = "select",
 				width = 0.6,
