@@ -6,7 +6,7 @@
 ## Notes: Tooltip Enhancement Addon
 
 ## SavedVariables: ManiaTipDB
-## OptionalDeps: BetterWardrobe, RaiderIO, Ace3, LibDDI-1.0, LibSharedMedia-3.0
+## OptionalDeps: Ace3, LibDDI-1.0, LibSharedMedia-3.0
 
 #@non-debug@
 # libs\LibStub\LibStub.lua

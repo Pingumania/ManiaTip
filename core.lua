@@ -564,7 +564,7 @@ local function HookTips()
 	end
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
-	GameTooltip:HookScript("OnShow", OnTooltipShow)
+	hooksecurefunc(GameTooltip, "Show", OnTooltipShow)
 	GameTooltipStatusBar:HookScript("OnValueChanged", StatusBar_OnValueChanged)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
