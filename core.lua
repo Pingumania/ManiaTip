@@ -14,7 +14,6 @@ local u = {}
 -- Config data variables
 local cfg
 local defaults = {
-	targetYouText = "<<YOU>>",
 	showPlayerTitle = true,
 	showRealm = true,
 	showPlayerRealm = true,
@@ -37,16 +36,16 @@ local defaults = {
 	colReactText6 = "|cff25c1eb",
 	colReactText7 = "|cff808080",
 
-	colReactBack1 = { 0.5, 0.5, 0.5 },
-	colReactBack2 = { 1, 0, 0 },
-	colReactBack3 = { 0.8, 0.3, 0.22 },
-	colReactBack4 = { 0.9, 0.7, 0 },
-	colReactBack5 = { 0, 0.6, 0.1 },
-	colReactBack6 = { 0.13, 0.31, 0.51 },
-	colReactBack7 = { 0.35, 0.35, 0.35 },
+	colReactBack1 = { r = 0.5, g = 0.5, b = 0.5 },
+	colReactBack2 = { r = 1, g = 0, b = 0 },
+	colReactBack3 = { r = 0.8, g = 0.3, b = 0.22 },
+	colReactBack4 = { r = 0.9, g = 0.7, b = 0 },
+	colReactBack5 = { r = 0, g = 0.6, b = 0.1 },
+	colReactBack6 = { r = 0.13, g = 0.31, b = 0.51 },
+	colReactBack7 = { r = 0.35, g = 0.35, b = 0.35 },
 
-	tipColor = { 0.06, 0.06, 0.06, 1 },
-	tipBorderColor = { 0.3, 0.3, 0.3, 1 },
+	tipColor = {}, -- Set during VARIABLES_LOADED
+	tipBorderColor = { 1, 1, 1, 1 },
 
 	barFontFace = "Arial Narrow", -- Set during VARIABLES_LOADED
 	barFontSize = 13,
@@ -66,6 +65,7 @@ local defaults = {
 	infoColor = { 0.2, 0.6, 1 },
 	itemQualityBorder = true
 }
+local orig = {}
 
 -- Faction names
 local FactionNames = {}
@@ -182,12 +182,12 @@ local function GetLevelLine(data)
 end
 
 local function RemoveUnwantedLines(tip)
-	local frame, text
+	local line, text
 	for i = 2, tip:NumLines() do
-		frame = _G["GameTooltipTextLeft"..i]
-		text = frame:GetText()
+		line = _G["GameTooltipTextLeft"..i]
+		text = line:GetText()
 		if (cfg.hidePvpText) and (text == PVP_ENABLED) or (cfg.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE)) or FactionNames[text] then
-			frame:SetText(nil)
+			line:SetText("")
 		end
 	end
 end
@@ -223,43 +223,29 @@ local function GetTarget(unit)
 	return target, targetName
 end
 
--- local function GetEmptyLineIndex(tip)
--- 	local frame
--- 	for i = 2, tip:NumLines()  do
--- 		frame = _G["GameTooltipTextLeft"..i]
--- 		if frame and frame:GetStringHeight() == 0 then
--- 			return i
--- 		end
--- 	end
--- end
-
-local function GetEmptyLines(tip)
+local function GetEmptyTralingLines(tip)
 	local frame
 	local count = 0
 	for i = 2, tip:NumLines() do
 		frame = _G["GameTooltipTextLeft"..i]
 		if frame and (frame:GetStringHeight() == 0 or not frame:GetText()) then
 			count = count + 1
+		else
+			count = 0
 		end
 	end
 
 	return count
 end
 
-local function CalculatePadding(tip)
-	local yPadding
-	if tip:NumLines() > 5 then
-		yPadding = 0
-	else
-		yPadding = GetEmptyLines(tip) * -3
-	end
-
-	return 0, yPadding
+local function CalculateYOffset(tip)
+	local yPadding = GetEmptyTralingLines(tip) * -3
+	return yPadding
 end
 
-local function GameTooltip_Show(tip)
+local function OnTooltipShow(tip)
 	if tip:IsForbidden() or not u.unit then return end
-	tip:SetPadding(CalculatePadding(tip))
+	tip:SetPadding(0, CalculateYOffset(tip))
 end
 
 local function OnTooltipSetUnit(tip, data)
@@ -273,33 +259,26 @@ local function OnTooltipSetUnit(tip, data)
 		return
 	end
 
+	RemoveUnwantedLines(tip)
+
 	u.unit = unit
 	local isPlayer = UnitIsPlayer(unit)
+	local guild = GetGuildInfo(unit)
 	local class, classID = UnitClass(unit)
 	local reactionIndex = GetUnitReactionIndex(unit)
 	local fullName = data.lines[1].leftText
 	local reactionColor = cfg["colReactText"..reactionIndex]
 	local isPetWild, isPetCompanion = UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion(unit)
 
-	RemoveUnwantedLines(tip)
-
-	-- Level + Classification
-	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
-	local classification = UnitClassification(unit) or ""
-	local unitClass = isPlayer and format("%s %s", UnitRace(unit) or "", ClassColorMarkup[classID]..(UnitClass(unit) or "")) or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
-	local levelColor = (UnitCanAttack(unit, "player") or UnitCanAttack("player", unit)) and GetDifficultyLevelColor(level ~= -1 and level or 500) or cfg.colLevel
-	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
-	local levelLine = GetLevelLine(data)
-	if levelLine then
-		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s", levelColor..levelText.."|r", unitClass)
-	end
-
-	-- Generate Line Modification
+	-- UnitName
+	local nameString = reactionColor..fullName
+	local color = cfg["colReactBack"..reactionIndex]
 	if isPlayer then
-		local guild = GetGuildInfo(unit)
 		local name, realm = UnitName(unit)
 
-		local nameString = ClassColorMarkup[classID]..name
+		color = CLASS_COLORS[classID] or CLASS_COLORS["PRIEST"]
+		nameString = ClassColorMarkup[classID]..name
+
 		-- Name
 		if cfg.showPlayerTitle then
 			if realm then
@@ -320,48 +299,26 @@ local function OnTooltipSetUnit(tip, data)
 			nameString = nameString..COLOR_WHITE..(status or "")
 		end
 		GameTooltipTextLeft1:SetFormattedText("%s", nameString)
-		-- Guild
-		if guild then
-			local pGuild = GetGuildInfo("player")
-			local guildColor = (guild == pGuild and cfg.colSameGuild or cfg.colorGuildByReaction and reactionColor or cfg.colGuild)
-			GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, guild)
-		end
+	end
+	GameTooltipTextLeft1:SetFormattedText("%s", nameString)
+	tip.NineSlice:SetBorderColor(color.r, color.g, color.b)
 
-		local color = CLASS_COLORS[classID] or CLASS_COLORS["PRIEST"]
-		tip.NineSlice:SetBorderColor(color.r, color.g, color.b)
-	else
-		GameTooltipTextLeft1:SetFormattedText("%s", reactionColor..fullName)
-		tip.NineSlice:SetBorderColor(unpack(cfg["colReactBack"..reactionIndex]))
+	-- Guild
+	if isPlayer and guild then
+		local pGuild = GetGuildInfo("player")
+		local guildColor = (guild == pGuild and cfg.colSameGuild or cfg.colorGuildByReaction and reactionColor or cfg.colGuild)
+		GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, guild)
 	end
 
-	-- Target
-	local target, targetName = GetTarget(unit)
-	if target and targetName then
-		local targetLine = ""
-		if targetName and (targetName ~= UNKNOWNOBJECT and targetName ~= "" or UnitExists(target)) then
-			targetLine = "|cffffd100"..BINDING_HEADER_TARGETING..": "
-			if (UnitIsUnit("player", target)) then
-				targetLine = targetLine..COLOR_WHITE..cfg.targetYouText
-			else
-				local targetReaction = cfg["colReactText"..GetUnitReactionIndex(target)]
-				targetLine = targetLine..targetReaction
-				if (UnitIsPlayer(target)) then
-					local _, targetClassID = UnitClass(target)
-					targetLine = targetLine..(ClassColorMarkup[targetClassID] or COLOR_LIGHTGRAY)..targetName..targetReaction
-				else
-					targetLine = targetLine..targetName
-				end
-			end
-		end
-
-		local line
-		-- if GetEmptyLineIndex(tip) then
-		-- 	line = _G["GameTooltipTextLeft"..GetEmptyLineIndex(tip)]
-		-- else
-			tip:AddLine(" ", nil, nil, nil, 1)
-			line = _G["GameTooltipTextLeft"..tip:NumLines()]
-		-- end
-		line:SetText(targetLine, unpack(cfg.infoColor))
+	-- Level + Classification
+	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
+	local classification = UnitClassification(unit) or ""
+	local unitClass = isPlayer and format("%s %s", UnitRace(unit) or "", ClassColorMarkup[classID]..(UnitClass(unit) or "")) or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
+	local levelColor = (UnitCanAttack(unit, "player") or UnitCanAttack("player", unit)) and GetDifficultyLevelColor(level ~= -1 and level or 500) or cfg.colLevel
+	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
+	local levelLine = GetLevelLine(data)
+	if levelLine then
+		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s", levelColor..levelText.."|r", unitClass)
 	end
 
 	local textWidth = _G[ADDON_NAME.."StatusBarHealthText"]:GetStringWidth()
@@ -607,8 +564,8 @@ local function HookTips()
 	end
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
+	GameTooltip:HookScript("OnShow", OnTooltipShow)
 	GameTooltipStatusBar:HookScript("OnValueChanged", StatusBar_OnValueChanged)
-	-- hooksecurefunc(GameTooltip, "Show", GameTooltip_Show)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 
@@ -618,33 +575,7 @@ local function HookTips()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
 
-	-- { Name = "Item", Type = "TooltipDataType", EnumValue = 0 },
-	-- { Name = "Spell", Type = "TooltipDataType", EnumValue = 1 },
-	-- { Name = "Unit", Type = "TooltipDataType", EnumValue = 2 },
-	-- { Name = "Corpse", Type = "TooltipDataType", EnumValue = 3 },
-	-- { Name = "Object", Type = "TooltipDataType", EnumValue = 4 },
-	-- { Name = "Currency", Type = "TooltipDataType", EnumValue = 5 },
-	-- { Name = "BattlePet", Type = "TooltipDataType", EnumValue = 6 },
-	-- { Name = "UnitAura", Type = "TooltipDataType", EnumValue = 7 },
-	-- { Name = "AzeriteEssence", Type = "TooltipDataType", EnumValue = 8 },
-	-- { Name = "CompanionPet", Type = "TooltipDataType", EnumValue = 9 },
-	-- { Name = "Mount", Type = "TooltipDataType", EnumValue = 10 },
-	-- { Name = "PetAction", Type = "TooltipDataType", EnumValue = 11 },
-	-- { Name = "Achievement", Type = "TooltipDataType", EnumValue = 12 },
-	-- { Name = "EnhancedConduit", Type = "TooltipDataType", EnumValue = 13 },
-	-- { Name = "EquipmentSet", Type = "TooltipDataType", EnumValue = 14 },
-	-- { Name = "InstanceLock", Type = "TooltipDataType", EnumValue = 15 },
-	-- { Name = "PvPBrawl", Type = "TooltipDataType", EnumValue = 16 },
-	-- { Name = "RecipeRankInfo", Type = "TooltipDataType", EnumValue = 17 },
-	-- { Name = "Totem", Type = "TooltipDataType", EnumValue = 18 },
-	-- { Name = "Toy", Type = "TooltipDataType", EnumValue = 19 },
-	-- { Name = "CorruptionCleanser", Type = "TooltipDataType", EnumValue = 20 },
-	-- { Name = "MinimapMouseover", Type = "TooltipDataType", EnumValue = 21 },
-	-- { Name = "Flyout", Type = "TooltipDataType", EnumValue = 22 },
-	-- { Name = "Quest", Type = "TooltipDataType", EnumValue = 23 },
-	-- { Name = "QuestPartyProgress", Type = "TooltipDataType", EnumValue = 24 },
-	-- { Name = "Macro", Type = "TooltipDataType", EnumValue = 25 },
-	-- { Name = "Debug", Type = "TooltipDataType", EnumValue = 26 },
+	-- TooltipDataProcessor.AddLinePostCall(Enum.TooltipDataLineType.UnitName, OnLineSetUnitName)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -708,6 +639,9 @@ function mt:VARIABLES_LOADED()
 
 	UpdateGameTooltipStatusBarTexture()
 	UpdateGameTooltipStatusBarText()
+
+	local r, g, b = TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGB()
+	ns.cfg.tipColor = { r, g, b, 1}
 
 	-- Hook Tips & Dropdowns
 	HookTips()

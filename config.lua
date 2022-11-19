@@ -29,12 +29,6 @@ local function CreateConfig()
 				type = "toggle",
 				width = "full",
 			},
-			targetYouText = {
-				order = 12,
-				name = L["targetYouText"],
-				type = "input",
-				width = 1.5
-			},
 			header1 = {
 				order = 20,
 				type = "header",

@@ -1,7 +1,6 @@
 local _, ns = ...
 
 local L = {}
-L["targetYouText"] = "Text shown when you are targeted"
 L["showPlayerTitle"] = "Show the title of a player"
 L["showRealm"] = "Show the player realm"
 L["showPlayerRealm"] = ""
