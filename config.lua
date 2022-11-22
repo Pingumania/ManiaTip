@@ -38,27 +38,102 @@ local function CreateConfig()
 				order = 21,
 				name = L["tipColor"],
 				type = "color",
-				get = function() return unpack(ns.cfg.tipColor) end,
+				get = function() return ns.cfg.tipColor:GetRGBA() end,
 				set = function(_, r, g, b)
-					ns.cfg.tipColor = {r,g,b,1}
+					ns.cfg.tipColor = ns.cfg.tipColor:SetRGBA(r, g, b, 1)
 				end,
 			},
 			tipBorderColor = {
 				order = 22,
 				name = L["tipBorderColor"],
 				type = "color",
-				get = function() return unpack(ns.cfg.tipBorderColor) end,
+				get = function() return ns.cfg.tipBorderColor:GetRGBA() end,
 				set = function(_, r, g, b)
-					ns.cfg.tipBorderColor = {r,g,b,1}
+					ns.cfg.tipBorderColor = ns.cfg.tipBorderColor:SetRGBA(r, g, b, 1)
 				end,
 			},
-			header2 = {
+			spacer1 = {
+				order = 23,
+				type = "description",
+				name = "",
+			},
+			colReactBack1 = {
+				order = 24,
+				name = L["colReactBack1"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack1:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack1 = ns.cfg.colReactBack1:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack2 = {
+				order = 25,
+				name = L["colReactBack2"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack2:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack2 = ns.cfg.colReactBack2:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack3 = {
+				order = 26,
+				name = L["colReactBack3"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack3:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack3 = ns.cfg.colReactBack3:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack4 = {
+				order = 27,
+				name = L["colReactBack4"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack4:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack4 = ns.cfg.colReactBack4:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack5 = {
+				order = 28,
+				name = L["colReactBack5"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack5:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack5 = ns.cfg.colReactBack5:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack6 = {
+				order = 29,
+				name = L["colReactBack6"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack6:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack6 = ns.cfg.colReactBack6:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			colReactBack7 = {
 				order = 30,
+				name = L["colReactBack7"],
+				type = "color",
+				get = function() return ns.cfg.colReactBack7:GetRGBA() end,
+				set = function(_, r, g, b)
+					ns.cfg.colReactBack7 = ns.cfg.colReactBack7:SetRGBA(r, g, b, 1)
+				end,
+				width = "full",
+			},
+			header2 = {
+				order = 40,
 				type = "header",
 				name = L["healthBarSettings"],
 			},
 			barTexture = {
-				order = 31,
+				order = 41,
 				name = L["barTexture"],
 				type = "select",
 				width = 1.5,
@@ -74,13 +149,13 @@ local function CreateConfig()
 				end,
 				itemControl = "DDI-Statusbar",
 			},
-			spacer1 = {
-				order = 32,
+			spacer2 = {
+				order = 42,
 				type = "description",
 				name = "",
 			},
 			barFontFace = {
-				order = 33,
+				order = 43,
 				name = L["barFontFace"],
 				type = "select",
 				width = 1.5,
@@ -96,14 +171,14 @@ local function CreateConfig()
 				end,
 				itemControl = "DDI-Font",
 			},
-			spacer2 = {
-				order = 34,
+			spacer3 = {
+				order = 44,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontSize = {
-				order = 35,
+				order = 45,
 				name = L["barFontSize"],
 				type = "range",
 				-- width = "half",
@@ -115,14 +190,14 @@ local function CreateConfig()
 					ns.UpdateGameTooltipStatusBarText()
 				end,
 			},
-			spacer3 = {
-				order = 36,
+			spacer4 = {
+				order = 46,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontFlags = {
-				order = 37,
+				order = 47,
 				name = L["barFontFlags"],
 				type = "select",
 				width = 0.6,
@@ -138,9 +213,11 @@ local function CreateConfig()
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions(ADDON_NAME)
 end
 
-function mt:VARIABLES_LOADED()
-	CreateConfig()
+function mt:ADDON_LOADED(event, addon)
+	if addon == ADDON_NAME then
+		CreateConfig()
+	end
 end
 
 mt:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
-mt:RegisterEvent("VARIABLES_LOADED")
+mt:RegisterEvent("ADDON_LOADED")

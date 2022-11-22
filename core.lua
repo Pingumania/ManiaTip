@@ -36,16 +36,16 @@ local defaults = {
 	colReactText6 = "|cff25c1eb",
 	colReactText7 = "|cff808080",
 
-	colReactBack1 = { r = 0.5, g = 0.5, b = 0.5 },
-	colReactBack2 = { r = 1, g = 0, b = 0 },
-	colReactBack3 = { r = 0.8, g = 0.3, b = 0.22 },
-	colReactBack4 = { r = 0.9, g = 0.7, b = 0 },
-	colReactBack5 = { r = 0, g = 0.6, b = 0.1 },
-	colReactBack6 = { r = 0, g = 0.75, b = 0.95 },
-	colReactBack7 = { r = 0.35, g = 0.35, b = 0.35 },
+	colReactBack1 = CreateColor(0.5, 0.5, 0.5, 1),
+	colReactBack2 = CreateColor(1, 0, 0, 1),
+	colReactBack3 = CreateColor(0.8, 0.3, 0.22, 1),
+	colReactBack4 = CreateColor(0.9, 0.7, 0, 1),
+	colReactBack5 = CreateColor(0, 0.6, 0.1, 1),
+	colReactBack6 = CreateColor(0, 0.75, 0.95, 1),
+	colReactBack7 = CreateColor(0.35, 0.35, 0.35, 1),
 
-	tipColor = {}, -- Set during VARIABLES_LOADED
-	tipBorderColor = { 1, 1, 1, 1 },
+	tipColor = CreateColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGBA()),
+	tipBorderColor = CreateColor(1, 1, 1, 1),
 
 	barFontFace = "Arial Narrow",
 	barFontSize = 13,
@@ -154,8 +154,8 @@ local function SetDefaultNineSliceColor(tip)
 	if not tip or tip.IsEmbedded or tip:IsForbidden() then return end
 
 	if tip.NineSlice then
-		tip.NineSlice:SetCenterColor(unpack(cfg.tipColor))
-		tip.NineSlice:SetBorderColor(unpack(cfg.tipBorderColor))
+		tip.NineSlice:SetCenterColor(cfg.tipColor:GetRGBA())
+		tip.NineSlice:SetBorderColor(cfg.tipBorderColor:GetRGBA())
 	end
 end
 
@@ -452,7 +452,7 @@ end
 
 local function MemberList_OnEnter(self)
 	local classID
-	if type(self.GetMemberInfo) == "function" then
+	if self.GetMemberInfo then
 		local info = self:GetMemberInfo()
 		if not info then return end
 		classID = info.classID
@@ -575,8 +575,6 @@ local function HookTips()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
-
-	-- TooltipDataProcessor.AddLinePostCall(Enum.TooltipDataLineType.UnitName, OnLineSetUnitName)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -605,8 +603,6 @@ function mt:ADDON_LOADED(event, addon)
 
 		cfg = setmetatable(ManiaTipDB, { __index = defaults })
 		ns.cfg = cfg
-		local r, g, b = TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGB()
-		ns.cfg.tipColor = { r, g, b, 1}
 
 		GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
 		GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
@@ -621,8 +617,6 @@ function mt:ADDON_LOADED(event, addon)
 		local function OnTokenButtonAcquired(_, frame)
 			frame:HookScript("OnEnter", MemberList_OnEnter)
 			frame:HookScript("OnLeave", MemberList_OnLeave)
-			if type(frame.OnEnter) == "function" then hooksecurefunc(frame, "OnEnter", MemberList_OnEnter) end
-			if type(frame.OnLeave) == "function" then hooksecurefunc(frame, "OnLeave", MemberList_OnLeave) end
 		end
 
 		local iterateExisting = false
