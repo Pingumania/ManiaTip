@@ -583,6 +583,11 @@ end
 -- Events
 --------------------------------------------------------------------------------------------------------
 
+function mt:PLAYER_ENTERING_WORLD(event)
+	UpdateGameTooltipStatusBarTexture()
+	UpdateGameTooltipStatusBarText()
+end
+
 function mt:PLAYER_LOGIN(event)
 	self.playerLevel = UnitLevel("player")
 	self:UnregisterEvent(event)
@@ -597,8 +602,20 @@ function mt:ADDON_LOADED(event, addon)
 		if not ManiaTipDB then
 			ManiaTipDB = {}
 		end
+
 		cfg = setmetatable(ManiaTipDB, { __index = defaults })
 		ns.cfg = cfg
+		local r, g, b = TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGB()
+		ns.cfg.tipColor = { r, g, b, 1}
+
+		GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
+		GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
+		GameTooltipStatusBar.bg:SetAllPoints()
+		GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
+		GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
+
+		HookTips()
+		HookDropdowns()
 	end
 	if addon == "Blizzard_Communities" then
 		local function OnTokenButtonAcquired(_, frame)
@@ -631,26 +648,8 @@ function mt:ADDON_LOADED(event, addon)
 	end
 end
 
-function mt:VARIABLES_LOADED()
-	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
-	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
-	GameTooltipStatusBar.bg:SetAllPoints()
-	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
-	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
-
-	UpdateGameTooltipStatusBarTexture()
-	UpdateGameTooltipStatusBarText()
-
-	local r, g, b = TOOLTIP_DEFAULT_BACKGROUND_COLOR:GetRGB()
-	ns.cfg.tipColor = { r, g, b, 1}
-
-	-- Hook Tips & Dropdowns
-	HookTips()
-	HookDropdowns()
-end
-
 mt:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 mt:RegisterEvent("PLAYER_LOGIN")
 mt:RegisterEvent("PLAYER_LEVEL_UP")
-mt:RegisterEvent("VARIABLES_LOADED")
+mt:RegisterEvent("PLAYER_ENTERING_WORLD")
 mt:RegisterEvent("ADDON_LOADED")
