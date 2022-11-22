@@ -476,6 +476,7 @@ local function MemberList_OnEnter(self)
 	local classInfo = C_CreatureInfo.GetClassInfo(classID)
 	local color = CLASS_COLORS[classInfo.classFile] or CLASS_COLORS["PRIEST"]
 	GameTooltipTextLeft1:SetFormattedText("%s", ClassColorMarkup[classInfo.classFile]..text)
+	GameTooltip.NineSlice:SetBorderColor(color.r, color.g, color.b)
 	GameTooltip:Show()
 end
 
@@ -607,7 +608,7 @@ function mt:ADDON_LOADED(event, addon)
 			if type(frame.OnLeave) == "function" then hooksecurefunc(frame, "OnLeave", MemberList_OnLeave) end
 		end
 
-		local iterateExisting = true
+		local iterateExisting = false
 		local owner = nil
 		ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, OnTokenButtonAcquired, owner, iterateExisting)
 	end
