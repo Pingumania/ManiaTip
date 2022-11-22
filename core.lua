@@ -330,7 +330,7 @@ local function OnTooltipSetUnit(tip, data)
 end
 
 local function OnTooltipSetItem(tip, data)
-	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip1 then return end
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then return end
 	if tip:IsForbidden() then return end
 
 	if not tip.GetItem then
