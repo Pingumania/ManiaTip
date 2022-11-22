@@ -41,13 +41,13 @@ local defaults = {
 	colReactBack3 = { r = 0.8, g = 0.3, b = 0.22 },
 	colReactBack4 = { r = 0.9, g = 0.7, b = 0 },
 	colReactBack5 = { r = 0, g = 0.6, b = 0.1 },
-	colReactBack6 = { r = 0.13, g = 0.31, b = 0.51 },
+	colReactBack6 = { r = 0, g = 0.75, b = 0.95 },
 	colReactBack7 = { r = 0.35, g = 0.35, b = 0.35 },
 
 	tipColor = {}, -- Set during VARIABLES_LOADED
 	tipBorderColor = { 1, 1, 1, 1 },
 
-	barFontFace = "Arial Narrow", -- Set during VARIABLES_LOADED
+	barFontFace = "Arial Narrow",
 	barFontSize = 13,
 	barFontFlags = "OUTLINE",
 	barTexture = "Blizzard",
