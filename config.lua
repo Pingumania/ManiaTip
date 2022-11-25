@@ -8,6 +8,14 @@ local function CreateConfig()
 	local fonts = LibStub("LibSharedMedia-3.0"):List("font")
 	local statusbars = LibStub("LibSharedMedia-3.0"):List("statusbar")
 
+	local function ColorGetter(info)
+		return ns.cfg[info][1], ns.cfg[info][2], ns.cfg[info][3], ns.cfg[info][4] or 1
+	end
+
+	local function ColorSetter(info, r, g, b, a)
+		ns.cfg[info] = {r, g, b, a or 1}
+	end
+
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, {
 		type = "group",
 		get = function(info)
@@ -29,103 +37,137 @@ local function CreateConfig()
 				type = "toggle",
 				width = "full",
 			},
+			showTarget = {
+				order = 12,
+				name = L["showTarget"],
+				type = "toggle",
+				width = "full",
+			},
 			header1 = {
 				order = 20,
 				type = "header",
 				name = L["colorSettings"],
 			},
-			tipColor = {
+			descTooltipColors = {
 				order = 21,
+				type = "description",
+				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descTooltipColors"]),
+			},
+			tipColor = {
+				order = 22,
 				name = L["tipColor"],
 				type = "color",
-				get = function() return ns.cfg.tipColor:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.tipColor = ns.cfg.tipColor:SetRGBA(r, g, b, 1)
-				end,
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
 			tipBorderColor = {
-				order = 22,
+				order = 23,
 				name = L["tipBorderColor"],
 				type = "color",
-				get = function() return ns.cfg.tipBorderColor:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.tipBorderColor = ns.cfg.tipBorderColor:SetRGBA(r, g, b, 1)
-				end,
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			spacer1 = {
-				order = 23,
-				type = "description",
-				name = "",
-			},
-			colReactBack1 = {
+			descReactionColors = {
 				order = 24,
-				name = L["colReactBack1"],
-				type = "color",
-				get = function() return ns.cfg.colReactBack1:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack1 = ns.cfg.colReactBack1:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				type = "description",
+				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descReactionColors"]),
 			},
-			colReactBack2 = {
+			colReact1 = {
 				order = 25,
-				name = L["colReactBack2"],
+				name = L["colReact1"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack2:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack2 = ns.cfg.colReactBack2:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			colReactBack3 = {
+			colReact2 = {
 				order = 26,
-				name = L["colReactBack3"],
+				name = L["colReact2"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack3:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack3 = ns.cfg.colReactBack3:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			colReactBack4 = {
+			colReact3 = {
 				order = 27,
-				name = L["colReactBack4"],
+				name = L["colReact3"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack4:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack4 = ns.cfg.colReactBack4:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			colReactBack5 = {
+			colReact4 = {
 				order = 28,
-				name = L["colReactBack5"],
+				name = L["colReact4"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack5:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack5 = ns.cfg.colReactBack5:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			colReactBack6 = {
+			colReact5 = {
 				order = 29,
-				name = L["colReactBack6"],
+				name = L["colReact5"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack6:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack6 = ns.cfg.colReactBack6:SetRGBA(r, g, b, 1)
-				end,
-				width = "full",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
 			},
-			colReactBack7 = {
+			colReact6 = {
 				order = 30,
-				name = L["colReactBack7"],
+				name = L["colReact6"],
 				type = "color",
-				get = function() return ns.cfg.colReactBack7:GetRGBA() end,
-				set = function(_, r, g, b)
-					ns.cfg.colReactBack7 = ns.cfg.colReactBack7:SetRGBA(r, g, b, 1)
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
+			},
+			colReact7 = {
+				order = 31,
+				name = L["colReact7"],
+				type = "color",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
+			},
+			descInfoColors = {
+				order = 32,
+				type = "description",
+				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descInfoColors"]),
+			},
+			infoColor1 = {
+				order = 33,
+				name = L["infoColor1"],
+				type = "color",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
+			},
+			infoColor2 = {
+				order = 34,
+				name = L["infoColor2"],
+				type = "color",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.26,
+			},
+			resetColors = {
+				order = 35,
+				name = L["resetColors"],
+				type = "execute",
+				func = function()
+					ns.cfg.tipColor = ns.defaults.tipColor
+					ns.cfg.tipBorderColor = ns.defaults.tipBorderColor
+					ns.cfg.colReact1 = ns.defaults.colReact1
+					ns.cfg.colReact2 = ns.defaults.colReact2
+					ns.cfg.colReact3 = ns.defaults.colReact3
+					ns.cfg.colReact4 = ns.defaults.colReact4
+					ns.cfg.colReact5 = ns.defaults.colReact5
+					ns.cfg.colReact6 = ns.defaults.colReact6
+					ns.cfg.colReact7 = ns.defaults.colReact7
+					ns.cfg.infoColor1 = ns.defaults.infoColor1
+					ns.cfg.infoColor2 = ns.defaults.infoColor2
 				end,
-				width = "full",
 			},
 			header2 = {
 				order = 40,
@@ -181,7 +223,6 @@ local function CreateConfig()
 				order = 45,
 				name = L["barFontSize"],
 				type = "range",
-				-- width = "half",
 				max = 26,
 				min = 1,
 				step = 1,
