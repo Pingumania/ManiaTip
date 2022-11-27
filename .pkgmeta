@@ -12,3 +12,4 @@ manual-changelog:
 
 ignore:
   - "*.md"
+  - Screenshots
