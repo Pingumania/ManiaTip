@@ -29,19 +29,37 @@ local function CreateConfig()
 				order = 10,
 				name = L["showPlayerTitle"],
 				type = "toggle",
-				width = "full",
+				width = 1.75,
+			},
+			hidePvpText = {
+				order = 11,
+				name = L["hidePvpText"],
+				type = "toggle",
+				width = 1.75,
 			},
 			showRealm = {
-				order = 11,
+				order = 12,
 				name = L["showRealm"],
 				type = "toggle",
-				width = "full",
+				width = 1.75,
+			},
+			hideFactionText = {
+				order = 13,
+				name = L["hideFactionText"],
+				type = "toggle",
+				width = 1.75,
 			},
 			showTarget = {
-				order = 12,
+				order = 14,
 				name = L["showTarget"],
 				type = "toggle",
-				width = "full",
+				width = 1.75,
+			},
+			hideSubFactionText = {
+				order = 15,
+				name = L["hideSubFactionText"],
+				type = "toggle",
+				width = 1.75,
 			},
 			header1 = {
 				order = 20,
@@ -59,7 +77,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			tipBorderColor = {
 				order = 23,
@@ -67,7 +85,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			descReactionColors = {
 				order = 24,
@@ -80,7 +98,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact2 = {
 				order = 26,
@@ -88,7 +106,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact3 = {
 				order = 27,
@@ -96,7 +114,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact4 = {
 				order = 28,
@@ -104,7 +122,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact5 = {
 				order = 29,
@@ -112,7 +130,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact6 = {
 				order = 30,
@@ -120,7 +138,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			colReact7 = {
 				order = 31,
@@ -128,7 +146,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			descInfoColors = {
 				order = 32,
@@ -141,7 +159,7 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
 			},
 			infoColor2 = {
 				order = 34,
@@ -149,10 +167,31 @@ local function CreateConfig()
 				type = "color",
 				get = function(info) return ColorGetter(info[#info]) end,
 				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.26,
+				width = 1.10,
+			},
+			infoColorSpacer = {
+				order = 35,
+				type = "description",
+				name = "",
+			},
+			colGuild = {
+				order = 36,
+				name = L["colGuild"],
+				type = "color",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.10,
+			},
+			colSameGuild = {
+				order = 37,
+				name = L["colSameGuild"],
+				type = "color",
+				get = function(info) return ColorGetter(info[#info]) end,
+				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
+				width = 1.10,
 			},
 			resetColors = {
-				order = 35,
+				order = 38,
 				name = L["resetColors"],
 				type = "execute",
 				func = function()
@@ -167,37 +206,89 @@ local function CreateConfig()
 					ns.cfg.colReact7 = ns.defaults.colReact7
 					ns.cfg.infoColor1 = ns.defaults.infoColor1
 					ns.cfg.infoColor2 = ns.defaults.infoColor2
+					ns.cfg.colGuild = ns.defaults.colGuild
+					ns.cfg.colSameGuild = ns.defaults.colSameGuild
 				end,
 			},
 			header2 = {
 				order = 40,
 				type = "header",
-				name = L["healthBarSettings"],
+				name = L["fontSettings"],
 			},
-			barTexture = {
+			textFontFace = {
 				order = 41,
-				name = L["barTexture"],
+				name = L["textFontFace"],
 				type = "select",
 				width = 1.5,
-				values = statusbars,
+				values = fonts,
 				get = function()
-					for i, v in next, statusbars do
-						if v == ns.cfg.barTexture then return i end
+					for i, v in next, fonts do
+						if v == ns.cfg.textFontFace then return i end
 					end
 				end,
 				set = function(_, value)
-					ns.cfg.barTexture = statusbars[value]
-					ns.UpdateGameTooltipStatusBarTexture()
+					ns.cfg.textFontFace = fonts[value]
+					ns.UpdateGameTooltipFont()
 				end,
-				itemControl = "DDI-Statusbar",
+				itemControl = "DDI-Font",
 			},
-			spacer2 = {
+			spacer1 = {
 				order = 42,
 				type = "description",
 				name = "",
+				width = 0.1,
+			},
+			textFontSize = {
+				order = 43,
+				name = L["textFontSize"],
+				type = "range",
+				max = 26,
+				min = 1,
+				step = 1,
+				set = function(info, value)
+					ns.cfg[info[#info]] = value
+					ns.UpdateGameTooltipFont()
+				end,
+			},
+			spacer2 = {
+				order = 44,
+				type = "description",
+				name = "",
+				width = 0.1,
+			},
+			textFontFlags = {
+				order = 45,
+				name = L["textFontFlags"],
+				type = "select",
+				width = 0.6,
+				values = { NONE = L["none"], OUTLINE = L["thin"], THICKOUTLINE = L["thick"] },
+				set = function(info, value)
+					ns.cfg[info[#info]] = value
+					ns.UpdateGameTooltipFont()
+				end,
+			},
+			spacer3 = {
+				order = 52,
+				type = "description",
+				name = "",
+			},
+			header3 = {
+				order = 60,
+				type = "header",
+				name = L["healthBarSettings"],
+			},
+			showBarValues = {
+				order = 61,
+				name = L["showBarValues"],
+				type = "toggle",
+				width = "full",
+				set = function(info, value)
+					ns.cfg[info[#info]] = value
+					ns.UpdateGameTooltipStatusBarValueVisibility()
+				end,
 			},
 			barFontFace = {
-				order = 43,
+				order = 62,
 				name = L["barFontFace"],
 				type = "select",
 				width = 1.5,
@@ -213,14 +304,14 @@ local function CreateConfig()
 				end,
 				itemControl = "DDI-Font",
 			},
-			spacer3 = {
-				order = 44,
+			spacer4 = {
+				order = 63,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontSize = {
-				order = 45,
+				order = 64,
 				name = L["barFontSize"],
 				type = "range",
 				max = 26,
@@ -231,22 +322,39 @@ local function CreateConfig()
 					ns.UpdateGameTooltipStatusBarText()
 				end,
 			},
-			spacer4 = {
-				order = 46,
+			spacer5 = {
+				order = 65,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontFlags = {
-				order = 47,
+				order = 66,
 				name = L["barFontFlags"],
 				type = "select",
 				width = 0.6,
-				values = { NONE = L["None"], OUTLINE = L["Thin"], THICKOUTLINE = L["Thick"] },
+				values = { NONE = L["none"], OUTLINE = L["thin"], THICKOUTLINE = L["thick"] },
 				set = function(info, value)
 					ns.cfg[info[#info]] = value
 					ns.UpdateGameTooltipStatusBarText()
 				end,
+			},
+			barTexture = {
+				order = 67,
+				name = L["barTexture"],
+				type = "select",
+				width = 1.5,
+				values = statusbars,
+				get = function()
+					for i, v in next, statusbars do
+						if v == ns.cfg.barTexture then return i end
+					end
+				end,
+				set = function(_, value)
+					ns.cfg.barTexture = statusbars[value]
+					ns.UpdateGameTooltipStatusBarTexture()
+				end,
+				itemControl = "DDI-Statusbar",
 			},
 		},
 	})
