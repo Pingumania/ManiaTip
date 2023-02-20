@@ -562,7 +562,7 @@ local function UpdateGameTooltipFont()
 	local flag = cfg.textFontFlags == "NONE" and "" or cfg.textFontFlags
 	GameTooltipText:SetFont(font, size, flag)
 	GameTooltipHeaderText:SetFont(font, size + 2, flag)
-	GameTooltipTextSmall:SetFont(font, size - 2, flag)
+	GameTooltipTextSmall:SetFont(font, size, flag)
 end
 ns.UpdateGameTooltipFont = UpdateGameTooltipFont
 
