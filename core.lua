@@ -176,7 +176,11 @@ local function GetUnit(tip)
 
 	if not unit then
 		local mouseFocus = GetMouseFocus()
-		unit = mouseFocus and (mouseFocus.unit or (mouseFocus.GetAttribute and mouseFocus:GetAttribute("unit")))
+		local focusUnit = mouseFocus and mouseFocus.GetAttribute and mouseFocus:GetAttribute("unit")
+		if focusUnit then unit = focusUnit end
+		if not unit or not UnitExists(unit) then
+			return
+		end
 	end
 
 	return unit
@@ -341,6 +345,7 @@ local function OnTooltipSetUnit(tip, data)
 	end
 	GameTooltipTextLeft1:SetFormattedText("%s", nameString)
 	tip.NineSlice:SetBorderColor(unpack(color))
+	GameTooltipStatusBar:SetStatusBarColor(unpack(color))
 
 	-- Guild
 	if isPlayer and guild then
@@ -476,6 +481,17 @@ local function StatusBar_OnValueChanged(self, value)
 		return
 	end
 
+	local reactionIndex = GetUnitReactionIndex(unit)
+	local reactionColor = cfg["colReact"..reactionIndex]
+	local color = reactionColor
+
+	if UnitIsPlayer(unit) then
+		local _, classID = UnitClass(unit)
+		color = { CLASS_COLORS[classID]:GetRGBA() }
+	end
+
+	self:SetStatusBarColor(unpack(color))
+
 	if cfg.showBarValues then
 		local current = UnitHealth(unit)
 		local max = UnitHealthMax(unit)
@@ -484,12 +500,6 @@ local function StatusBar_OnValueChanged(self, value)
 			return
 		end
 		SetFormattedBarValues(current, max)
-	end
-
-	local _, classID = UnitClass(unit)
-	if UnitIsPlayer(unit) then
-		local color = CLASS_COLORS[classID] or CLASS_COLORS["PRIEST"]
-		self:SetStatusBarColor(color.r, color.g, color.b)
 	end
 end
 
@@ -637,7 +647,7 @@ local function HookTips()
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
 	hooksecurefunc(GameTooltip, "Show", OnTooltipShow)
-	GameTooltipStatusBar:HookScript("OnValueChanged", StatusBar_OnValueChanged)
+	GameTooltipStatusBar:SetScript("OnValueChanged", StatusBar_OnValueChanged)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 
@@ -680,6 +690,7 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 	GameTooltipStatusBar.bg:SetAllPoints()
 	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
 	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
 
 	HookTips()
 end)
