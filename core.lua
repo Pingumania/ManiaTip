@@ -461,6 +461,9 @@ local function OnTooltipSetMacro(tip, data)
 	if tip:IsForbidden() then return end
 
 	if data and data.lines[1] and data.lines[1].tooltipID then
+		if data.lines[1].tooltipType == 0 then
+			SetNineSliceBorderColor(tip, data.lines[1].tooltipID)
+		end
 		tip:AddLine(" ")
 		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.lines[1].tooltipID, GenerateHexColor(cfg.infoColor2)))
 		tip:Show()
