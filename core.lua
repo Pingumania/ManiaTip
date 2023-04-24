@@ -456,6 +456,17 @@ local function OnTooltipSetToy(tip, data)
 	end
 end
 
+local function OnTooltipSetMacro(tip, data)
+	if tip ~= GameTooltip then return end
+	if tip:IsForbidden() then return end
+
+	if data and data.lines[1] and data.lines[1].tooltipID then
+		tip:AddLine(" ")
+		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.lines[1].tooltipID, GenerateHexColor(cfg.infoColor2)))
+		tip:Show()
+	end
+end
+
 local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 	if C_PetBattles.IsWildBattle() then
 		local rarity = C_PetBattles.GetBreedQuality(owner, index)
@@ -656,6 +667,7 @@ local function HookTips()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, OnTooltipSetMacro)
 end
 
 --------------------------------------------------------------------------------------------------------
