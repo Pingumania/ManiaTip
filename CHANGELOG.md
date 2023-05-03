@@ -1,3 +1,7 @@
+ManiaTip Changes | 1.2.1
+------------------------
+- Update ToC for 10.1.0 (for real this time)
+
 ManiaTip Changes | 1.2.0
 ------------------------
 - Update ToC for 10.1.0
