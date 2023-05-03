@@ -137,12 +137,11 @@ local function FormatValue(val)
 	end
 end
 
-local function SetFormattedBarValues(val, max)
-	local string = _G[ADDON_NAME.."StatusBarHealthText"]
+local function SetFormattedBarValues(bar, val, max)
 	if val > 0 then
-		string:SetFormattedText("%s / %s", FormatValue(val), FormatValue(max))
+		bar:SetFormattedText("%s / %s", FormatValue(val), FormatValue(max))
 	elseif max then
-		string:SetText(DEAD)
+		bar:SetText(DEAD)
 	end
 end
 
@@ -163,7 +162,9 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function SetDefaultNineSliceColor(tip)
-	if not tip or tip.IsEmbedded or tip:IsForbidden() then return end
+	if not tip or tip.IsEmbedded then
+		return
+	end
 
 	if tip.NineSlice then
 		tip.NineSlice:SetCenterColor(unpack(cfg.tipColor))
@@ -173,15 +174,6 @@ end
 
 local function GetUnit(tip)
 	local _, unit = tip:GetUnit()
-
-	if not unit then
-		local mouseFocus = GetMouseFocus()
-		local focusUnit = mouseFocus and mouseFocus.GetAttribute and mouseFocus:GetAttribute("unit")
-		if focusUnit then unit = focusUnit end
-		if not unit or not UnitExists(unit) then
-			return
-		end
-	end
 
 	return unit
 end
@@ -227,8 +219,15 @@ local function RemoveUnwantedLines(tip)
 	end
 end
 
+local function AddIdLine(tip, id)
+	tip:AddLine(" ")
+	tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
+end
+
 local function SetNineSliceBorderColor(tip, itemLinkOrID)
-	if tip.IsEmbedded then return end
+	if tip.IsEmbedded then
+		return
+	end
 
 	if itemCache[itemLinkOrID] then
 		local r, g, b = GetItemQualityColor(itemCache[itemLinkOrID])
@@ -242,7 +241,9 @@ local function SetNineSliceBorderColor(tip, itemLinkOrID)
 	elseif type(itemLinkOrID) == "string" then
 		item = Item:CreateFromItemLink(itemLinkOrID)
 	end
-	if item:IsItemEmpty() then return end
+	if item:IsItemEmpty() then
+		return
+	end
 	-- This function also executes when the item is already loaded
 	item:ContinueOnItemLoad(function()
 		local rarity = item:GetItemQuality()
@@ -289,13 +290,17 @@ local function CalculateYOffset(tip)
 end
 
 local function OnTooltipShow(tip)
-	if tip:IsForbidden() or not u then return end
+	if not u then
+		return
+	end
+
 	tip:SetPadding(0, CalculateYOffset(tip))
 end
 
 local function OnTooltipSetUnit(tip, data)
-	if tip ~= GameTooltip then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip then
+		return
+	end
 
 	local unit = GetUnit(tip)
 
@@ -333,7 +338,9 @@ local function OnTooltipSetUnit(tip, data)
 		end
 		if cfg.showRealm then
 			if cfg.showSameRealm then
-				if not realm then realm = GetRealmName() end
+				if not realm then
+					realm = GetRealmName()
+				end
 			end
 			nameString = nameString..(realm and "-"..realm or "")
 		end
@@ -402,70 +409,72 @@ local function OnTooltipSetUnit(tip, data)
 end
 
 local function OnTooltipSetItem(tip)
-	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then
+		return
+	end
 
 	if not tip.GetItem then
 		Mixin(tip, GameTooltipDataMixin)
 	end
 
 	local _, link = tip:GetItem()
-	if not link then return end
+	if not link then
+		return
+	end
 
 	SetNineSliceBorderColor(tip, link)
 
 	local id = strmatch(link, "item:(%d+)")
 	if id and id ~= "" then
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
+		AddIdLine(tip, id)
 		tip:Show()
 	end
 end
 
 local function OnTooltipSetSpell(tip, data)
-	if tip ~= GameTooltip then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip then
+		return
+	end
 
 	if data.id then
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.id, GenerateHexColor(cfg.infoColor2)))
+		AddIdLine(tip, data.id)
 		tip:Show()
 	end
 end
 
 local function OnTooltipSetUnitAura(tip, data)
-	if tip ~= GameTooltip and tip ~= ItemRefTooltip then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip then
+		return
+	end
 
 	if data.id then
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.id, GenerateHexColor(cfg.infoColor2)))
+		AddIdLine(tip, data.id)
 		tip:Show()
 	end
 end
 
 local function OnTooltipSetToy(tip, data)
-	if tip ~= GameTooltip then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip then
+		return
+	end
 
 	if data.id then
 		SetNineSliceBorderColor(tip, data.id)
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.id, GenerateHexColor(cfg.infoColor2)))
+		AddIdLine(tip, data.id)
 		tip:Show()
 	end
 end
 
 local function OnTooltipSetMacro(tip, data)
-	if tip ~= GameTooltip then return end
-	if tip:IsForbidden() then return end
+	if tip ~= GameTooltip then
+		return
+	end
 
 	if data and data.lines[1] and data.lines[1].tooltipID then
 		if data.lines[1].tooltipType == 0 then
 			SetNineSliceBorderColor(tip, data.lines[1].tooltipID)
 		end
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(data.lines[1].tooltipID, GenerateHexColor(cfg.infoColor2)))
+		AddIdLine(tip, data.lines[1].tooltipID)
 		tip:Show()
 	end
 end
@@ -478,33 +487,24 @@ local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 end
 
 local function OnTooltipCleared(tip)
-	if tip:IsForbidden() then return end
-
 	if tip.ItemTooltip and not tip.ItemTooltip:IsShown() then
 		tip:SetPadding(0, 0)
 	end
+
+	GameTooltipStatusBar.text:SetText("")
 
 	u = nil
 end
 
 local function StatusBar_OnValueChanged(self, value)
-	if self:IsForbidden() or not value then return end
+	if not value then
+		return
+	end
 
 	local unit = GetUnit(self:GetParent())
 	if not unit then
 		return
 	end
-
-	local reactionIndex = GetUnitReactionIndex(unit)
-	local reactionColor = cfg["colReact"..reactionIndex]
-	local color = reactionColor
-
-	if UnitIsPlayer(unit) then
-		local _, classID = UnitClass(unit)
-		color = { CLASS_COLORS[classID]:GetRGBA() }
-	end
-
-	self:SetStatusBarColor(unpack(color))
 
 	if cfg.showBarValues then
 		local current = UnitHealth(unit)
@@ -513,12 +513,12 @@ local function StatusBar_OnValueChanged(self, value)
 		if (current < 0) or (current > max) then
 			return
 		end
-		SetFormattedBarValues(current, max)
+		SetFormattedBarValues(GameTooltipStatusBar.text, current, max)
 	end
 end
 
 local function GTT_SetDefaultAnchor(tip, parent)
-	if tip:IsForbidden() or not parent then
+	if not parent then
 		return
 	end
 
@@ -536,7 +536,9 @@ local function MemberList_OnEnter(self)
 	local level, race, classID
 	if self.GetMemberInfo then
 		local info = self:GetMemberInfo()
-		if not info then return end
+		if not info then
+			return
+		end
 		classID = info.classID
 		level = info.level
 		race = info.race
@@ -544,10 +546,14 @@ local function MemberList_OnEnter(self)
 		return
 	end
 
-	if not classID then return end
+	if not classID then
+		return
+	end
 
 	local text = GameTooltipTextLeft1:GetText()
-	if not text then return end
+	if not text then
+		return
+	end
 
 	if cfg.showRealm and cfg.showSameRealm then
 		if (not strmatch(text, "%a+%-.+")) then
