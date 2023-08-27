@@ -11,6 +11,46 @@ mt.playerLevel = 0
 local itemCache = {}
 local u
 
+local tips = {
+	GameTooltip,
+	ShoppingTooltip1,
+	ShoppingTooltip2,
+	ItemRefTooltip,
+	ItemRefShoppingTooltip1,
+	ItemRefShoppingTooltip2,
+	FriendsTooltip,
+	EmbeddedItemTooltip,
+	QuickKeybindTooltip,
+	GameNoHeaderTooltip,
+	GameSmallHeaderTooltip,
+	-- Blizzard addon tooltips
+	FrameStackTooltip,
+	EventTraceTooltip,
+	RuneforgeFrameResultTooltip,
+	CharCustomizeTooltip,
+	CharCustomizeNoHeaderTooltip,
+	NamePlateTooltip,
+	ItemSocketingDescription,
+	GarrisonMissionMechanicTooltip,
+	GarrisonMissionMechanicFollowerCounterTooltip,
+	BattlePetTooltip,
+	PetBattlePrimaryUnitTooltip,
+	PetBattlePrimaryAbilityTooltip,
+	-- 3rd party addon tooltips
+	AtlasLootTooltip,
+	LibDBIconTooltip,
+	-- Frames
+	QueueStatusFrame,
+	QuestScrollFrame and QuestScrollFrame.CampaignTooltip,
+	QuestScrollFrame and QuestScrollFrame.StoryTooltip,
+	ChatMenu,
+	VoiceMacroMenu,
+	LanguageMenu,
+	EmoteMenu,
+	AutoCompleteBox,
+	FloatingBattlePetTooltip,
+}
+
 -- Config data variables
 local cfg
 local defaults = {
@@ -20,6 +60,7 @@ local defaults = {
 	showSameRealm = true,
 	showTarget = true,
 	targetYouText = "<YOU>",
+	tipScale = 1,
 
 	hidePvpText = false,
 	hideFactionText = false,
@@ -586,6 +627,13 @@ end
 -- Config update
 --------------------------------------------------------------------------------------------------------
 
+local function UpdateTooltipScale()
+	for _, tip in next, tips do
+		tip:SetScale(cfg.tipScale)
+	end
+end
+ns.UpdateTooltipScale = UpdateTooltipScale
+
 local function UpdateGameTooltipFont()
 	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.textFontFace)
 	local size = cfg.textFontSize
@@ -712,6 +760,7 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
 
 	HookTips()
+	UpdateTooltipScale()
 end)
 
 EventUtil.ContinueOnAddOnLoaded("Blizzard_Communities", function()

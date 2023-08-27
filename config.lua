@@ -61,6 +61,18 @@ local function CreateConfig()
 				type = "toggle",
 				width = 1.75,
 			},
+			tipScale = {
+				order = 16,
+				name = L["tipScale"],
+				type = "range",
+				max = 2,
+				min = 0.5,
+				step = .05,
+				set = function(info, value)
+					ns.cfg[info[#info]] = value
+					ns.UpdateTooltipScale()
+				end,
+			},
 			header1 = {
 				order = 20,
 				type = "header",

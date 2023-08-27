@@ -40,6 +40,7 @@ L["tipBorderColor"] = "Tooltip Border Color"
 L["tipColor"] = "Tooltip Background Color"
 L["fontSettings"] = "Tooltip Font Settings"
 L["showBarValues"] = "Show health values on Healthbar"
+L["tipScale"] = "Tooltip Scale"
 L["colGuild"] = "Guild Color"
 L["colSameGuild"] = "Same Guild Color"
 
