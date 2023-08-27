@@ -289,22 +289,34 @@ local function CreateConfig()
 				type = "header",
 				name = L["healthBarSettings"],
 			},
-			showBarValues = {
+			showBar = {
 				order = 61,
-				name = L["showBarValues"],
+				name = L["showBar"],
 				type = "toggle",
 				width = "full",
 				set = function(info, value)
 					ns.cfg[info[#info]] = value
-					ns.UpdateGameTooltipStatusBarValueVisibility()
+					ns.UpdateGameTooltipStatusBarVisibility()
+				end,
+			},
+			showBarValues = {
+				order = 62,
+				name = L["showBarValues"],
+				type = "toggle",
+				width = "full",
+				disabled = function() return not ns.cfg.showBar end,
+				set = function(info, value)
+					ns.cfg[info[#info]] = value
+					ns.UpdateGameTooltipStatusBarVisibility()
 				end,
 			},
 			barFontFace = {
-				order = 62,
+				order = 63,
 				name = L["barFontFace"],
 				type = "select",
 				width = 1.5,
 				values = fonts,
+				disabled = function() return not ns.cfg.showBar end,
 				get = function()
 					for i, v in next, fonts do
 						if v == ns.cfg.barFontFace then return i end
@@ -317,46 +329,49 @@ local function CreateConfig()
 				itemControl = "DDI-Font",
 			},
 			spacer4 = {
-				order = 63,
+				order = 64,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontSize = {
-				order = 64,
+				order = 65,
 				name = L["barFontSize"],
 				type = "range",
 				max = 26,
 				min = 1,
 				step = 1,
+				disabled = function() return not ns.cfg.showBar end,
 				set = function(info, value)
 					ns.cfg[info[#info]] = value
 					ns.UpdateGameTooltipStatusBarText()
 				end,
 			},
 			spacer5 = {
-				order = 65,
+				order = 66,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontFlags = {
-				order = 66,
+				order = 67,
 				name = L["barFontFlags"],
 				type = "select",
 				width = 0.6,
 				values = { NONE = L["none"], OUTLINE = L["thin"], THICKOUTLINE = L["thick"] },
+				disabled = function() return not ns.cfg.showBar end,
 				set = function(info, value)
 					ns.cfg[info[#info]] = value
 					ns.UpdateGameTooltipStatusBarText()
 				end,
 			},
 			barTexture = {
-				order = 67,
+				order = 68,
 				name = L["barTexture"],
 				type = "select",
 				width = 1.5,
 				values = statusbars,
+				disabled = function() return not ns.cfg.showBar end,
 				get = function()
 					for i, v in next, statusbars do
 						if v == ns.cfg.barTexture then return i end

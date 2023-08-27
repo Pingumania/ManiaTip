@@ -2,6 +2,7 @@ ManiaTip Changes | 1.3.0
 ------------------------
 - Update ToC for patch 10.1.5
 - Add option to set the scale of tooltips
+- Add option to hide the healthbar
 
 ManiaTip Changes | 1.2.1
 ------------------------

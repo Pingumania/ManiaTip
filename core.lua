@@ -91,6 +91,7 @@ local defaults = {
 	barFontFlags = "OUTLINE",
 	barTexture = "Blizzard",
 
+	showBar = true,
 	showBarValues = true,
 	barsCondenseValues = true,
 
@@ -334,7 +335,7 @@ local function OnTooltipShow(tip)
 	if not u then
 		return
 	end
-
+	
 	tip:SetPadding(0, CalculateYOffset(tip))
 end
 
@@ -537,6 +538,22 @@ local function OnTooltipCleared(tip)
 	u = nil
 end
 
+local function SetupGameTooltipStatusBar()
+	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
+	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
+	GameTooltipStatusBar.bg:SetAllPoints()
+	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
+	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
+	GameTooltipStatusBar:HookScript("OnShow", function(self)
+		if cfg.showBar then
+			self:Show()
+		else
+			self:Hide()
+		end
+	end)
+end
+
 local function StatusBar_OnValueChanged(self, value)
 	if not value then
 		return
@@ -644,14 +661,18 @@ local function UpdateGameTooltipFont()
 end
 ns.UpdateGameTooltipFont = UpdateGameTooltipFont
 
-local function UpdateGameTooltipStatusBarValueVisibility()
-	if cfg.showBarValues then
-		GameTooltipStatusBar.text:Show()
+local function UpdateGameTooltipStatusBarVisibility()
+	if cfg.showBar then
+		if cfg.showBarValues then
+			GameTooltipStatusBar.text:Show()
+		else
+			GameTooltipStatusBar.text:Hide()
+		end
 	else
 		GameTooltipStatusBar.text:Hide()
 	end
 end
-ns.UpdateGameTooltipStatusBarValueVisibility = UpdateGameTooltipStatusBarValueVisibility
+ns.UpdateGameTooltipStatusBarVisibility = UpdateGameTooltipStatusBarVisibility
 
 local function UpdateGameTooltipStatusBarTexture()
 	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", cfg.barTexture))
@@ -669,46 +690,6 @@ ns.UpdateGameTooltipStatusBarText = UpdateGameTooltipStatusBarText
 --------------------------------------------------------------------------------------------------------
 
 local function HookTips()
-	local tips = {
-		GameTooltip,
-		ShoppingTooltip1,
-		ShoppingTooltip2,
-		ItemRefTooltip,
-		ItemRefShoppingTooltip1,
-		ItemRefShoppingTooltip2,
-		FriendsTooltip,
-		EmbeddedItemTooltip,
-		QuickKeybindTooltip,
-		GameNoHeaderTooltip,
-		GameSmallHeaderTooltip,
-		-- Blizzard addon tooltips
-		FrameStackTooltip,
-		EventTraceTooltip,
-		RuneforgeFrameResultTooltip,
-		CharCustomizeTooltip,
-		CharCustomizeNoHeaderTooltip,
-		NamePlateTooltip,
-		ItemSocketingDescription,
-		GarrisonMissionMechanicTooltip,
-		GarrisonMissionMechanicFollowerCounterTooltip,
-		BattlePetTooltip,
-		PetBattlePrimaryUnitTooltip,
-		PetBattlePrimaryAbilityTooltip,
-		-- 3rd party addon tooltips
-		AtlasLootTooltip,
-		LibDBIconTooltip,
-		-- Frames
-		QueueStatusFrame,
-		QuestScrollFrame and QuestScrollFrame.CampaignTooltip,
-		QuestScrollFrame and QuestScrollFrame.StoryTooltip,
-		ChatMenu,
-		VoiceMacroMenu,
-		LanguageMenu,
-		EmoteMenu,
-		AutoCompleteBox,
-		FloatingBattlePetTooltip,
-	}
-
 	for _, tip in next, tips do
 		SetDefaultNineSliceColor(tip)
 	end
@@ -752,13 +733,7 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 	cfg = setmetatable(ManiaTipDB, { __index = defaults })
 	ns.cfg = cfg
 
-	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
-	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
-	GameTooltipStatusBar.bg:SetAllPoints()
-	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
-	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
-
+	SetupGameTooltipStatusBar()
 	HookTips()
 	UpdateTooltipScale()
 end)
