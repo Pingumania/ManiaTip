@@ -683,13 +683,11 @@ end
 -- Events
 --------------------------------------------------------------------------------------------------------
 
-function mt:VARIABLES_LOADED()
+function mt:PLAYER_LOGIN(event)
 	UpdateGameTooltipStatusBarTexture()
 	UpdateGameTooltipStatusBarText()
 	UpdateGameTooltipFont()
-end
 
-function mt:PLAYER_LOGIN(event)
 	self.playerLevel = UnitLevel("player")
 	self:UnregisterEvent(event)
 end
@@ -738,4 +736,3 @@ end)
 mt:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
 mt:RegisterEvent("PLAYER_LOGIN")
 mt:RegisterEvent("PLAYER_LEVEL_UP")
-mt:RegisterEvent("VARIABLES_LOADED")
