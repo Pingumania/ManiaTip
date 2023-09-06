@@ -1,26 +1,26 @@
-name: Release
+name: Release package
 
 on:
   push:
     tags:
-      - '**'
+      - '*'
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Clone Project
+      - name: Clone project
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Create Changelog
+      - name: Create changelog
         uses: Pingumania/actions-recent-changelog@main
         with:
           input: CHANGELOG.md
           output: RECENT_CHANGES.md
 
-      - name: Create Package
+      - name: Create package
         uses: BigWigsMods/packager@v2
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
