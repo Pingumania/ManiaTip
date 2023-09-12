@@ -435,10 +435,10 @@ local function OnTooltipSetUnit(tip, data)
 						text = text..targetName
 					end
 				end
-			end
 
-			local line = GetEmptyTrailingLine(tip)
-			line:SetText(text)
+				local line = GetEmptyTrailingLine(tip)
+				line:SetText(text)
+			end
 		end
 	end
 
