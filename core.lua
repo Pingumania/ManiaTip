@@ -261,6 +261,31 @@ local function RemoveUnwantedLines(tip)
 	end
 end
 
+local function GetEmptyTrailingLines(tip)
+	local frame
+	local count = 0
+	for i = 2, tip:NumLines() do
+		frame = _G[tip:GetName().."TextLeft"..i]
+		if frame and (frame:GetStringHeight() == 0 or not frame:GetText()) then
+			count = count + 1
+		else
+			count = 0
+		end
+	end
+
+	return count
+end
+
+local function GetEmptyTrailingLine(tip)
+	local count = GetEmptyTrailingLines(tip)
+	if count > 0 then
+		return _G["GameTooltipTextLeft"..tip:NumLines() + 1 - count]
+	else
+		tip:AddLine(" ")
+		return _G["GameTooltipTextLeft"..tip:NumLines()]
+	end
+end
+
 local function AddIdLine(tip, id)
 	tip:AddLine(" ")
 	tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
@@ -299,31 +324,6 @@ local function GetTarget(unit)
 	local target = unit.."target"
 	local targetName = UnitName(target)
 	return target, targetName
-end
-
-local function GetEmptyTrailingLines(tip)
-	local frame
-	local count = 0
-	for i = 2, tip:NumLines() do
-		frame = _G["GameTooltipTextLeft"..i]
-		if frame and (frame:GetStringHeight() == 0 or not frame:GetText()) then
-			count = count + 1
-		else
-			count = 0
-		end
-	end
-
-	return count
-end
-
-local function GetEmptyTrailingLine(tip)
-	local count = GetEmptyTrailingLines(tip)
-	if count > 0 then
-		return _G["GameTooltipTextLeft"..tip:NumLines() + 1 - count]
-	else
-		tip:AddLine(" ")
-		return _G["GameTooltipTextLeft"..tip:NumLines()]
-	end
 end
 
 local function CalculateYOffset(tip)
@@ -406,12 +406,12 @@ local function OnTooltipSetUnit(tip, data)
 	-- Level + Classification
 	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
 	local classification = UnitClassification(unit) or ""
-	local unitClass = isPlayer and format("%s %s", UnitRace(unit) or "", ClassColorMarkup[classID]..(UnitClass(unit) or "")) or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
+	local unitClass = isPlayer and UnitRace(unit) or "" or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
 	local levelColor = GetDifficultyLevelColor(level ~= -1 and level or 500)
 	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
 	local levelLine = GetLevelLineIndexFromTooltipData(data)
 	if levelLine then
-		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s%s", levelColor..levelText.."|r", unitClass)
+		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s%s", LEVEL, levelColor..levelText.."|r", unitClass)
 	end
 
 	-- Target
@@ -445,6 +445,11 @@ local function OnTooltipSetUnit(tip, data)
 	local textWidth = _G[ADDON_NAME.."StatusBarHealthText"]:GetStringWidth()
 	if textWidth and GameTooltipStatusBar:IsShown() then
 		tip:SetMinimumWidth(textWidth + 12)
+	end
+
+	for i = 1, tip:NumLines() do
+		local line = _G[tip:GetName().."TextLeft"..i]
+		line:SetSpacing(0)
 	end
 
 	tip:Show()
