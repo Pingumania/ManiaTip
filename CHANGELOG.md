@@ -1,3 +1,7 @@
+ManiaTip Changes | 1.4.0
+------------------------
+- Update ToC for patch 10.2.0
+
 ManiaTip Changes | 1.3.0
 ------------------------
 - Update ToC for patch 10.1.5
