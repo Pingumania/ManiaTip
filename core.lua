@@ -744,12 +744,16 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 end)
 
 EventUtil.ContinueOnAddOnLoaded("Blizzard_Communities", function()
+	local hooked = {}
 	local function OnTokenButtonAcquired(_, frame)
+		if not hooked[frame] then
 		frame:HookScript("OnEnter", MemberList_OnEnter)
 		frame:HookScript("OnLeave", MemberList_OnLeave)
+			hooked[frame] = true
+		end
 	end
 
-	local iterateExisting = false
+	local iterateExisting = true
 	local owner = nil
 	ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, OnTokenButtonAcquired, owner, iterateExisting)
 end)
