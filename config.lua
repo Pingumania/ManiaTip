@@ -305,8 +305,32 @@ local function CreateConfig()
 					ns.UpdateGameTooltipStatusBarVisibility()
 				end,
 			},
-			showBarValues = {
+			barTexture = {
 				order = 62,
+				name = L["barTexture"],
+				type = "select",
+				width = 1.5,
+				values = statusbars,
+				disabled = function() return not ns.cfg.showBar end,
+				get = function()
+					for i, v in next, statusbars do
+						if v == ns.cfg.barTexture then return i end
+					end
+				end,
+				set = function(_, value)
+					ns.cfg.barTexture = statusbars[value]
+					ns.UpdateGameTooltipStatusBarTexture()
+				end,
+				itemControl = "DDI-Statusbar",
+			},
+			spacer4 = {
+				order = 63,
+				type = "description",
+				name = " ",
+				width = "full",
+			},
+			showBarValues = {
+				order = 64,
 				name = L["showBarValues"],
 				type = "toggle",
 				width = "full",
@@ -317,7 +341,7 @@ local function CreateConfig()
 				end,
 			},
 			barFontFace = {
-				order = 63,
+				order = 65,
 				name = L["barFontFace"],
 				type = "select",
 				width = 1.5,
@@ -334,14 +358,14 @@ local function CreateConfig()
 				end,
 				itemControl = "DDI-Font",
 			},
-			spacer4 = {
-				order = 64,
+			spacer5 = {
+				order = 66,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontSize = {
-				order = 65,
+				order = 67,
 				name = L["barFontSize"],
 				type = "range",
 				max = 26,
@@ -354,13 +378,13 @@ local function CreateConfig()
 				end,
 			},
 			spacer5 = {
-				order = 66,
+				order = 68,
 				type = "description",
 				name = "",
 				width = 0.1,
 			},
 			barFontFlags = {
-				order = 67,
+				order = 69,
 				name = L["barFontFlags"],
 				type = "select",
 				width = 0.6,
@@ -370,24 +394,6 @@ local function CreateConfig()
 					ns.cfg[info[#info]] = value
 					ns.UpdateGameTooltipStatusBarText()
 				end,
-			},
-			barTexture = {
-				order = 68,
-				name = L["barTexture"],
-				type = "select",
-				width = 1.5,
-				values = statusbars,
-				disabled = function() return not ns.cfg.showBar end,
-				get = function()
-					for i, v in next, statusbars do
-						if v == ns.cfg.barTexture then return i end
-					end
-				end,
-				set = function(_, value)
-					ns.cfg.barTexture = statusbars[value]
-					ns.UpdateGameTooltipStatusBarTexture()
-				end,
-				itemControl = "DDI-Statusbar",
 			},
 		},
 	})
