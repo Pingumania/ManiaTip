@@ -61,8 +61,14 @@ local function CreateConfig()
 				type = "toggle",
 				width = 1.75,
 			},
-			tipScale = {
+			showId = {
 				order = 16,
+				name = L["showId"],
+				type = "toggle",
+				width = "full",
+			},
+			tipScale = {
+				order = 17,
 				name = L["tipScale"],
 				type = "range",
 				max = 2,

@@ -59,6 +59,7 @@ local defaults = {
 	showPlayerRealm = true,
 	showSameRealm = true,
 	showTarget = true,
+	showId = true,
 	targetYouText = "<YOU>",
 	tipScale = 1,
 
@@ -287,8 +288,10 @@ local function GetEmptyTrailingLine(tip)
 end
 
 local function AddIdLine(tip, id)
-	tip:AddLine(" ")
-	tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
+	if cfg.showId and id ~= "" then
+		tip:AddLine(" ")
+		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
+	end
 end
 
 local function SetNineSliceBorderColor(tip, itemLinkOrID)
@@ -472,9 +475,8 @@ local function OnTooltipSetItem(tip)
 	SetNineSliceBorderColor(tip, link)
 
 	local id = strmatch(link, "item:(%d+)")
-	if id and id ~= "" then
+	if id then
 		AddIdLine(tip, id)
-		tip:Show()
 	end
 end
 
@@ -485,7 +487,6 @@ local function OnTooltipSetSpell(tip, data)
 
 	if data.id then
 		AddIdLine(tip, data.id)
-		tip:Show()
 	end
 end
 
@@ -496,7 +497,6 @@ local function OnTooltipSetUnitAura(tip, data)
 
 	if data.id then
 		AddIdLine(tip, data.id)
-		tip:Show()
 	end
 end
 
@@ -508,7 +508,6 @@ local function OnTooltipSetToy(tip, data)
 	if data.id then
 		SetNineSliceBorderColor(tip, data.id)
 		AddIdLine(tip, data.id)
-		tip:Show()
 	end
 end
 
@@ -522,7 +521,6 @@ local function OnTooltipSetMacro(tip, data)
 			SetNineSliceBorderColor(tip, data.lines[1].tooltipID)
 		end
 		AddIdLine(tip, data.lines[1].tooltipID)
-		tip:Show()
 	end
 end
 

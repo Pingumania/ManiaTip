@@ -1,6 +1,7 @@
-ManiaTip Changes | 1.4.1
+ManiaTip Changes | 1.5.0
 ------------------------
 - Fix guild frame lag
+- Add option to hide IDs
 
 ManiaTip Changes | 1.4.0
 ------------------------
