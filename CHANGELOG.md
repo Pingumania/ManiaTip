@@ -1,3 +1,7 @@
+ManiaTip Changes | 1.6.0
+------------------------
+- Update for patch 11.0.0
+
 ManiaTip Changes | 1.5.0
 ------------------------
 - Fix guild frame lag

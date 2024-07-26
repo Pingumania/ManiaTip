@@ -111,10 +111,10 @@ ns.defaults = defaults
 
 -- Faction names
 local FactionNames = {}
-for i = 1, 9999 do
-	local name = GetFactionInfoByID(i)
-	if name then
-		FactionNames[name] = true
+for factionID = 1, 9999 do
+	local factionData = C_Reputation.GetFactionDataByID(factionID)
+	if factionData and factionData.name then
+		FactionNames[factionData.name] = true
 	end
 end
 
