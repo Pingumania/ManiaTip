@@ -1,3 +1,7 @@
+ManiaTip Changes | 1.6.1
+------------------------
+- Update for patch 11.0.2
+
 ManiaTip Changes | 1.6.0
 ------------------------
 - Update for patch 11.0.0

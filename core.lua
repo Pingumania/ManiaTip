@@ -300,7 +300,7 @@ local function SetNineSliceBorderColor(tip, itemLinkOrID)
 	end
 
 	if itemCache[itemLinkOrID] then
-		local r, g, b = GetItemQualityColor(itemCache[itemLinkOrID])
+		local r, g, b = C_Item.GetItemQualityColor(itemCache[itemLinkOrID])
 		tip.NineSlice:SetBorderColor(r, g, b, 1)
 		return
 	end
@@ -317,7 +317,7 @@ local function SetNineSliceBorderColor(tip, itemLinkOrID)
 	-- This function also executes when the item is already loaded
 	item:ContinueOnItemLoad(function()
 		local rarity = item:GetItemQuality()
-		local r, g, b = GetItemQualityColor(rarity)
+		local r, g, b = C_Item.GetItemQualityColor(rarity)
 		tip.NineSlice:SetBorderColor(r, g, b, 1)
 		itemCache[itemLinkOrID] = rarity
 	end)
