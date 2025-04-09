@@ -18,6 +18,7 @@ local function CreateConfig()
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, {
 		type = "group",
+		name = ADDON_NAME,
 		get = function(info)
 			return ns.cfg[info[#info]]
 		end,
