@@ -459,7 +459,7 @@ local function OnTooltipSetUnit(tip, data)
 end
 
 local function OnTooltipSetItem(tip)
-	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip and ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then
+	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip ~= ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then
 		return
 	end
 
