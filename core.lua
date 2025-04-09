@@ -527,7 +527,7 @@ end
 local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 	if C_PetBattles.IsWildBattle() then
 		local rarity = C_PetBattles.GetBreedQuality(owner, index)
-		tip.NineSlice:SetBorderColor(ITEM_QUALITY_COLORS[rarity-1].r, ITEM_QUALITY_COLORS[rarity-1].g, ITEM_QUALITY_COLORS[rarity-1].b, 1)
+		tip.NineSlice:SetBorderColor(ITEM_QUALITY_COLORS[rarity].r, ITEM_QUALITY_COLORS[rarity].g, ITEM_QUALITY_COLORS[rarity].b, 1)
 	end
 end
 
