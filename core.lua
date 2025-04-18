@@ -200,6 +200,14 @@ local function GenerateHexColorMarkup(color)
 	return "|c"..GenerateHexColor(color)
 end
 
+local function SafeUnpackColor(color, default)
+    default = default or 1
+    return color[1] or default,
+           color[2] or default,
+           color[3] or default,
+           color[4] or default
+end
+
 --------------------------------------------------------------------------------------------------------
 -- Functions
 --------------------------------------------------------------------------------------------------------
@@ -210,8 +218,8 @@ local function SetDefaultNineSliceColor(tip)
 	end
 
 	if tip.NineSlice then
-		tip.NineSlice:SetCenterColor(unpack(cfg.tipColor))
-		tip.NineSlice:SetBorderColor(unpack(cfg.tipBorderColor))
+		tip.NineSlice:SetCenterColor(SafeUnpackColor(cfg.tipColor))
+		tip.NineSlice:SetBorderColor(SafeUnpackColor(cfg.tipBorderColor))
 	end
 end
 
@@ -338,7 +346,7 @@ local function OnTooltipShow(tip)
 	if not u then
 		return
 	end
-	
+
 	tip:SetPadding(0, CalculateYOffset(tip))
 end
 
@@ -396,8 +404,8 @@ local function OnTooltipSetUnit(tip, data)
 		end
 	end
 	GameTooltipTextLeft1:SetFormattedText("%s", nameString)
-	tip.NineSlice:SetBorderColor(unpack(color))
-	GameTooltipStatusBar:SetStatusBarColor(unpack(color))
+	tip.NineSlice:SetBorderColor(SafeUnpackColor(color))
+	GameTooltipStatusBar:SetStatusBarColor(SafeUnpackColor(color))
 
 	-- Guild
 	if isPlayer and guild then
@@ -635,7 +643,7 @@ local function MemberList_OnEnter(self)
 		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s %s", levelColor..level.."|r", raceInfo.raceName, ClassColorMarkup[classInfo.classFile]..classInfo.className)
 	end
 
-	GameTooltip.NineSlice:SetBorderColor(unpack(color))
+	GameTooltip.NineSlice:SetBorderColor(SafeUnpackColor(color))
 	GameTooltip:Show()
 end
 
