@@ -1,6 +1,7 @@
 ## Interface: 110100
 ## Version: @project-version@
 ## Title: ManiaTip
+## Category: User Interface
 ## Author: Pingumania
 ## Notes: Tooltip Enhancement Addon
 ## X-Curse-Project-ID: 714350
