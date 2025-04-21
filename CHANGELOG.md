@@ -1,6 +1,6 @@
 ManiaTip Changes | v10
 ----------------------
-- Add ruRU translation
+- Add ruRU translation (Thanks to ZamestoTV)
 
 ManiaTip Changes | v9
 ---------------------
