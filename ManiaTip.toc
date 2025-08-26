@@ -16,6 +16,6 @@ Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibDDI-1.0\lib.lua
-locales.lua
-core.lua
-config.lua
+Locales.lua
+Core.lua
+Config.lua
