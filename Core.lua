@@ -372,10 +372,17 @@ local function OnTooltipSetUnit(tip, data)
 	local guild = GetGuildInfo(unit)
 	local _, classID = UnitClass(unit)
 	local reactionIndex = GetUnitReactionIndex(unit)
-	local fullName = UnitFullName(unit) -- data.lines[1].leftText ~= "" and data.lines[1].leftText or data.lines[2].leftText
 	local reactionColor = cfg["colReact"..reactionIndex]
 	local reactionColorMarkup = GenerateHexColorMarkup(reactionColor)
 	local isPetWild, isPetCompanion = UnitIsWildBattlePet and UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion and UnitIsBattlePetCompanion(unit)
+
+	local fullName
+	for _, lineData in ipairs(data.lines) do
+		if lineData.type == Enum.TooltipDataLineType.UnitName then
+			fullName = lineData.leftText
+			break
+		end
+	end
 
 	-- UnitName
 	local nameString = reactionColorMarkup..fullName
