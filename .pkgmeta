@@ -1,10 +1,10 @@
 externals:
-  libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
-  libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-  libs/LibSharedMedia-3.0: https://repos.curseforge.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
-  libs/LibDDI-1.0: https://repos.curseforge.com/wow/libddi-1-0/trunk
-  libs/AceConfig-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0
-  libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
+  Libs/LibStub: https://repos.curseforge.com/wow/ace3/trunk/LibStub
+  Libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+  Libs/LibSharedMedia-3.0: https://repos.curseforge.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
+  Libs/LibDDI-1.0: https://repos.curseforge.com/wow/libddi-1-0/trunk
+  Libs/AceConfig-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0
+  Libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
 
 manual-changelog:
   filename: RECENT_CHANGES.md
