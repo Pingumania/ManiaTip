@@ -1,3 +1,7 @@
+ManiaTip Changes | v11
+----------------------
+- Update TOC for patch 11.2.0
+
 ManiaTip Changes | v10
 ----------------------
 - Add ruRU translation (Thanks to ZamestoTV)
