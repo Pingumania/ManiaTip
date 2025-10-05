@@ -384,6 +384,8 @@ local function OnTooltipSetUnit(tip, data)
 		end
 	end
 
+	if not fullName then return end
+
 	-- UnitName
 	local nameString = reactionColorMarkup..fullName
 	local color = reactionColor
