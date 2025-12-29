@@ -427,13 +427,16 @@ local function OnTooltipSetUnit(tip, data)
 	if isPlayer and guild then
 		local pGuild = GetGuildInfo("player")
 		local guildColor = (guild == pGuild and GenerateHexColorMarkup(cfg.colSameGuild) or GenerateHexColorMarkup(cfg.colGuild))
+		if ns.Classic then
+			tip:AddLine(GameTooltipTextLeft2:GetText(), 1, 1, 1)
+		end
 		GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, guild)
 	end
 
 	-- Level + Classification
 	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
 	local classification = UnitClassification(unit) or ""
-	local unitClass = isPlayer and UnitRace(unit) or "" or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
+	local unitClass = isPlayer and (UnitRace(unit) .. " " .. ClassColorMarkup[classID] .. UnitClass(unit) .. "|r") or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
 	local levelColor = GetDifficultyLevelColor(level ~= -1 and level or 500)
 	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
 	local levelLine = data and GetLevelLineIndexFromTooltipData(data) or GetLevelLineIndex(tip)
