@@ -143,14 +143,14 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function GetDifficultyLevelColor(level)
-	level = level - mt.playerLevel
-	if level > 4 then
+	local diff = level - mt.playerLevel
+	if diff >= 5 then
 		return IMPOSSIBLE_DIFFICULTY_COLOR_CODE
-	elseif level > 2 then
+	elseif diff >= 3 then
 		return DIFFICULT_DIFFICULTY_COLOR_CODE
-	elseif level >= -2 then
+	elseif diff >= -2 then
 		return FAIR_DIFFICULTY_COLOR_CODE
-	elseif level >= -GetQuestGreenRange then
+	elseif -diff <= GetQuestGreenRange then
 		return EASY_DIFFICULTY_COLOR_CODE
 	else
 		return TRIVIAL_DIFFICULTY_COLOR_CODE
