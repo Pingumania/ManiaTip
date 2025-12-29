@@ -230,12 +230,6 @@ local function SetDefaultNineSliceColor(tip)
 	end
 end
 
-local function GetUnit(tip)
-	local _, unit = tip:GetUnit()
-
-	return unit
-end
-
 local function GetLevelLineIndex(tip)
 	for i = 2, tip:NumLines() do
 		local leftText = _G[tip:GetName().."TextLeft"..i]:GetText()
@@ -349,6 +343,35 @@ local function CalculateYOffset(tip)
 	return yPadding
 end
 
+local function GetUnitFromTooltip(tip)
+	local _, unit = tip:GetUnit()
+	if unit then
+		return unit
+	end
+
+	return "mouseover"
+end
+
+local function StatusBar_OnValueChanged(self)
+	if not t.u then return end
+	local unit = t.u
+
+	if ns.Classic then
+		GameTooltipStatusBar:SetStatusBarColor(unpack(t.color))
+	end
+
+	if cfg.showBarValues then
+		local current = UnitHealth(unit)
+		local max = UnitHealthMax(unit)
+
+		if (current < 0) or (current > max) then
+			return
+		end
+
+		SetFormattedBarValues(GameTooltipStatusBar.text, current, max)
+	end
+end
+
 local function OnTooltipShow(tip)
 	if not u then
 		return
@@ -362,7 +385,12 @@ local function OnTooltipSetUnit(tip, data)
 		return
 	end
 
-	local unit = GetUnit(tip)
+	local unit
+	if data and data.guid then
+		unit = UnitTokenFromGUID(data.guid)
+	else
+		unit = GetUnitFromTooltip(tip)
+	end
 
 	if not unit then
 		tip:Hide()
@@ -381,13 +409,16 @@ local function OnTooltipSetUnit(tip, data)
 	local isPetWild, isPetCompanion = UnitIsWildBattlePet and UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion and UnitIsBattlePetCompanion(unit)
 
 	local fullName
+	if data and data.lines then
 	for _, lineData in ipairs(data.lines) do
 		if lineData.type == Enum.TooltipDataLineType.UnitName then
 			fullName = lineData.leftText
 			break
 		end
 	end
-
+	else
+		fullName = UnitName(unit)
+	end
 	if not fullName then return end
 
 	-- UnitName
@@ -479,6 +510,8 @@ local function OnTooltipSetUnit(tip, data)
 		local line = _G[tip:GetName().."TextLeft"..i]
 		line:SetSpacing(0)
 	end
+	-- force health bar update
+	StatusBar_OnValueChanged(GameTooltipStatusBar)
 
 	tip:Show()
 end
@@ -603,27 +636,6 @@ local function SetupGameTooltipStatusBar()
 			self:Hide()
 		end
 	end)
-end
-
-local function StatusBar_OnValueChanged(self, value)
-	if not value then
-		return
-	end
-
-	local unit = GetUnit(self:GetParent())
-	if not unit then
-		return
-	end
-
-	if cfg.showBarValues then
-		local current = UnitHealth(unit)
-		local max = UnitHealthMax(unit)
-
-		if (current < 0) or (current > max) then
-			return
-		end
-		SetFormattedBarValues(GameTooltipStatusBar.text, current, max)
-	end
 end
 
 local function CreateAnchor()
@@ -810,9 +822,10 @@ local function HookTips()
 			tip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
 			tip:HookScript("OnTooltipSetSpell", OnTooltipSetSpell)
 		end
+
+		hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 	end
 end
-
 --------------------------------------------------------------------------------------------------------
 -- Events
 --------------------------------------------------------------------------------------------------------
@@ -821,10 +834,6 @@ function mt:PLAYER_LOGIN(event)
 	UpdateGameTooltipStatusBarTexture()
 	UpdateGameTooltipStatusBarText()
 	UpdateGameTooltipFont()
-
-	if not ns.Retail then
-		CreateAnchor()
-	end
 
 	self.playerLevel = UnitLevel("player")
 	self:UnregisterEvent(event)
@@ -841,6 +850,10 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 
 	cfg = setmetatable(ManiaTipDB, { __index = defaults })
 	ns.cfg = cfg
+
+	if not ns.Retail then
+		CreateAnchor()
+	end
 
 	SetupGameTooltipStatusBar()
 	HookTips()
