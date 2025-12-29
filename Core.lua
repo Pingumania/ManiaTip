@@ -190,9 +190,13 @@ local function FormatValue(val)
 	end
 end
 
-local function SetFormattedBarValues(bar, val, max)
-	if val > 0 then
-		bar:SetFormattedText("%s / %s", FormatValue(val), FormatValue(max))
+local function SetFormattedBarValues(bar, cur, max)
+	if cur > 0 then
+		if ns.Classic and t.isPlayer and not t.isMe then
+			bar:SetFormattedText("%s%%", FormatValue(cur))
+		else
+			bar:SetFormattedText("%s / %s", FormatValue(cur), FormatValue(max))
+		end
 	elseif max then
 		bar:SetText(DEAD)
 	end
