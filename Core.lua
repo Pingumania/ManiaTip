@@ -452,22 +452,20 @@ local function OnTooltipSetUnit(tip, data)
 			if targetName and (targetName ~= UNKNOWNOBJECT and targetName ~= "" or UnitExists(target)) then
 				text = GenerateHexColorMarkup(cfg["targetColor"])..BINDING_HEADER_TARGETING..": "
 				if (UnitIsUnit("player", target)) then
-					text = text..COLOR_WARNING..cfg.targetYouText
+					text = text..COLOR_WARNING..cfg.targetYouText.." |r"
+				end
+				if (UnitIsPlayer(target)) then
+					local _, targetClassID = UnitClass(target)
+					text = text..(ClassColorMarkup[targetClassID])
 				else
-					local targetReactionIndex = GetUnitReactionIndex(target)
+					local targetReactionIndex = UnitReaction("player", target)
 					local targetReactionColor = cfg["colReact"..targetReactionIndex]
 					local targetReactionColorMarkup = GenerateHexColorMarkup(targetReactionColor)
 					text = text..targetReactionColorMarkup
-					if (UnitIsPlayer(target)) then
-						local _, targetClassID = UnitClass(target)
-						text = text..(ClassColorMarkup[targetClassID] or COLOR_LIGHTGRAY)..targetName
-					else
-						text = text..targetName
-					end
 				end
 
 				local line = GetEmptyTrailingLine(tip)
-				line:SetText(text)
+				line:SetFormattedText("%s%s", text, targetName)
 			end
 		end
 	end
