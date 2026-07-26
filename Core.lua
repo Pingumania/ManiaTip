@@ -35,10 +35,10 @@ ns.defaults = {
 	colReact6 = { 0,    0.75, 0.95, 1 },
 	colReact7 = { 0.35, 0.35, 0.35, 1 },
 
-	tipColor = { CreateColor(0.090, 0.090, 0.188, 1.000):GetRGBA() },
+	tipColor = { 0.090, 0.090, 0.188, 1.000 },
 	tipBorderColor = { 1, 1, 1, 1 },
 
-	targetColor = { CreateColor(1.000, 0.824, 0.000, 1.000):GetRGBA() },
+	targetColor = { 1.000, 0.824, 0.000, 1.000 },
 
 	textFontFace = "Arial Narrow",
 	textFontSize = 12,
@@ -118,7 +118,11 @@ ns.EraTooltips = {
 	ItemRefShoppingTooltip2,
 }
 
-ns.tooltips = ns.Retail and ns.RetailTooltips or ns.EraTooltips
+if ns.Retail then
+	ns.tooltips = ns.RetailTooltips
+else
+	ns.tooltips = ns.EraTooltips
+end
 
 --------------------------------------------------------------------------------------------------------
 -- Shared colors
@@ -133,16 +137,12 @@ for classID, color in next, ns.CLASS_COLORS do
 	ns.ClassColorMarkup[classID] = color:GenerateHexColorMarkup()
 end
 
-function ns.GetRGBAAsBytes(color)
-	return Round(color[1] * 255), Round(color[2] * 255), Round(color[3] * 255), Round((color[4] or 1) * 255)
-end
-
 function ns.GenerateHexColor(color)
-	return ("ff%.2x%.2x%.2x"):format(ns.GetRGBAAsBytes(color))
+	return CreateColor(unpack(color)):GenerateHexColor()
 end
 
 function ns.GenerateHexColorMarkup(color)
-	return "|c"..ns.GenerateHexColor(color)
+	return CreateColor(unpack(color)):GenerateHexColorMarkup()
 end
 
 --------------------------------------------------------------------------------------------------------
