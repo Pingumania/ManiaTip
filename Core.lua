@@ -374,9 +374,6 @@ local function GTT_SetDefaultAnchor(tip, parent)
 
 	tip:SetOwner(parent, "ANCHOR_NONE")
 
-	-- Optional per-flavor override (only Era defines one today) - checked
-	-- generically so any future flavor module can opt in the same way,
-	-- without this needing to know which specific flavors want it.
 	if ns.FlavorModule.SetCustomAnchorPoint then
 		tip:ClearAllPoints()
 		ns.FlavorModule.SetCustomAnchorPoint(tip)
