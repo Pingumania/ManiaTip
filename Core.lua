@@ -1,60 +1,15 @@
 local ADDON_NAME, ns = ...
 
-ns.Classic = WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
 ns.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-ns.IsEra = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
-
-local GetQuestGreenRange = ns.Retail and UnitQuestTrivialLevelRange("player") or GetQuestGreenRange()
+ns.Era = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 
 local L = ns.L
-local mt = CreateFrame("Frame")
-mt.playerLevel = 0
-local itemCache = {}
-local u
 
-local tips = {
-	GameTooltip,
-	ShoppingTooltip1,
-	ShoppingTooltip2,
-	ItemRefTooltip,
-	ItemRefShoppingTooltip1,
-	ItemRefShoppingTooltip2,
-	FriendsTooltip,
-	EmbeddedItemTooltip,
-	QuickKeybindTooltip,
-	GameNoHeaderTooltip,
-	GameSmallHeaderTooltip,
-	-- Blizzard addon tooltips
-	FrameStackTooltip,
-	EventTraceTooltip,
-	RuneforgeFrameResultTooltip,
-	CharCustomizeTooltip,
-	CharCustomizeNoHeaderTooltip,
-	NamePlateTooltip,
-	ItemSocketingDescription,
-	GarrisonMissionMechanicTooltip,
-	GarrisonMissionMechanicFollowerCounterTooltip,
-	BattlePetTooltip,
-	PetBattlePrimaryUnitTooltip,
-	PetBattlePrimaryAbilityTooltip,
-	-- 3rd party addon tooltips
-	AtlasLootTooltip,
-	LibDBIconTooltip,
-	-- Frames
-	QueueStatusFrame,
-	QuestScrollFrame and QuestScrollFrame.CampaignTooltip,
-	QuestScrollFrame and QuestScrollFrame.StoryTooltip,
-	ChatMenu,
-	VoiceMacroMenu,
-	LanguageMenu,
-	EmoteMenu,
-	AutoCompleteBox,
-	FloatingBattlePetTooltip,
-}
+--------------------------------------------------------------------------------------------------------
+-- Saved variables
+--------------------------------------------------------------------------------------------------------
 
--- Config data variables
-local cfg
-local defaults = {
+ns.defaults = {
 	showPlayerTitle = true,
 	showRealm = true,
 	showPlayerRealm = true,
@@ -108,208 +63,193 @@ local defaults = {
 	infoColor1 = { 0.2, 0.6, 1, 1 },
 	infoColor2 = { 1,   1,   1, 1 },
 }
-ns.defaults = defaults
 
--- Faction names
-local FactionNames = {}
-do
-	local name, data
-	local newApi = C_Reputation and C_Reputation.GetFactionDataByID
-	for factionID = 1, 9999 do
-		if newApi then
-			data = C_Reputation.GetFactionDataByID(factionID)
-			name = data and data.name
-		else
-			name = GetFactionInfoByID(factionID)
-		end
-		if name then
-			FactionNames[name] = true
-		end
-	end
+--------------------------------------------------------------------------------------------------------
+-- Tooltip lists
+--------------------------------------------------------------------------------------------------------
+
+ns.RetailTooltips = {
+	GameTooltip,
+	ShoppingTooltip1,
+	ShoppingTooltip2,
+	ItemRefTooltip,
+	ItemRefShoppingTooltip1,
+	ItemRefShoppingTooltip2,
+	FriendsTooltip,
+	EmbeddedItemTooltip,
+	QuickKeybindTooltip,
+	GameNoHeaderTooltip,
+	GameSmallHeaderTooltip,
+	-- Blizzard addon tooltips
+	FrameStackTooltip,
+	EventTraceTooltip,
+	RuneforgeFrameResultTooltip,
+	CharCustomizeTooltip,
+	CharCustomizeNoHeaderTooltip,
+	NamePlateTooltip,
+	ItemSocketingDescription,
+	GarrisonMissionMechanicTooltip,
+	GarrisonMissionMechanicFollowerCounterTooltip,
+	BattlePetTooltip,
+	PetBattlePrimaryUnitTooltip,
+	PetBattlePrimaryAbilityTooltip,
+	-- 3rd party addon tooltips
+	AtlasLootTooltip,
+	LibDBIconTooltip,
+	-- Frames
+	QueueStatusFrame,
+	QuestScrollFrame and QuestScrollFrame.CampaignTooltip,
+	QuestScrollFrame and QuestScrollFrame.StoryTooltip,
+	ChatMenu,
+	VoiceMacroMenu,
+	LanguageMenu,
+	EmoteMenu,
+	AutoCompleteBox,
+	FloatingBattlePetTooltip,
+}
+
+ns.EraTooltips = {
+	GameTooltip,
+	ShoppingTooltip1,
+	ShoppingTooltip2,
+	ItemRefTooltip,
+	ItemRefShoppingTooltip1,
+	ItemRefShoppingTooltip2,
+}
+
+ns.tooltips = ns.Retail and ns.RetailTooltips or ns.EraTooltips
+
+--------------------------------------------------------------------------------------------------------
+-- Shared colors
+--------------------------------------------------------------------------------------------------------
+
+ns.COLOR_WHITE = WHITE_FONT_COLOR_CODE
+ns.COLOR_WARNING = WARNING_FONT_COLOR_CODE
+ns.CLASS_COLORS = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
+
+ns.ClassColorMarkup = {}
+for classID, color in next, ns.CLASS_COLORS do
+	ns.ClassColorMarkup[classID] = color:GenerateHexColorMarkup()
 end
 
--- Colors
-local COLOR_WHITE = WHITE_FONT_COLOR_CODE
-local COLOR_LIGHTGRAY = LIGHTGRAY_FONT_COLOR_CODE
-local COLOR_WARNING = WARNING_FONT_COLOR_CODE
-local CLASS_COLORS = CUSTOM_CLASS_COLORS or RAID_CLASS_COLORS
-local ClassColorMarkup = {}
-for classID, color in next, CLASS_COLORS do
-	ClassColorMarkup[classID] = color:GenerateHexColorMarkup()
+function ns.GetRGBAAsBytes(color)
+	return Round(color[1] * 255), Round(color[2] * 255), Round(color[3] * 255), Round((color[4] or 1) * 255)
+end
+
+function ns.GenerateHexColor(color)
+	return ("ff%.2x%.2x%.2x"):format(ns.GetRGBAAsBytes(color))
+end
+
+function ns.GenerateHexColorMarkup(color)
+	return "|c"..ns.GenerateHexColor(color)
 end
 
 --------------------------------------------------------------------------------------------------------
--- Helper Functions
+-- Player level tracking
 --------------------------------------------------------------------------------------------------------
 
-local function GetDifficultyLevelColor(level)
-	local diff = level - mt.playerLevel
+local function GetQuestGreenRange()
+	return ns.Retail and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
+end
+
+function ns.GetDifficultyLevelColor(level)
+	local diff = level - ns.playerLevel
 	if diff >= 5 then
 		return IMPOSSIBLE_DIFFICULTY_COLOR_CODE
 	elseif diff >= 3 then
 		return DIFFICULT_DIFFICULTY_COLOR_CODE
 	elseif diff >= -2 then
 		return FAIR_DIFFICULTY_COLOR_CODE
-	elseif -diff <= GetQuestGreenRange then
+	elseif -diff <= ns.questGreenRange then
 		return EASY_DIFFICULTY_COLOR_CODE
 	else
 		return TRIVIAL_DIFFICULTY_COLOR_CODE
 	end
 end
 
-local function GetUnitReactionIndex(unit)
-	if (UnitIsDead(unit)) then
-		return 7
-	elseif (UnitIsPlayer(unit) or UnitPlayerControlled(unit)) then
-		if (UnitCanAttack(unit, "player")) then
-			return (UnitCanAttack("player", unit) and 2 or 3)
-		elseif (UnitCanAttack("player", unit)) then
-			return 4
-		elseif (UnitIsPVP(unit) and not UnitIsPVPSanctuary(unit) and not UnitIsPVPSanctuary("player")) then
-			return 5
-		else
-			return 6
-		end
-	elseif (UnitIsTapDenied(unit)) and not (UnitPlayerControlled(unit)) then
-		return 1
-	else
-		local reaction = (UnitReaction(unit,"player") or 3)
-		return (reaction > 5 and 5) or (reaction < 2 and 2) or (reaction)
-	end
-end
-
-local function FormatValue(val)
-	if (not cfg.barsCondenseValues) or (val < 1000) then
-		return tostring(floor(val))
-	elseif (val < 1000000) then
-		return ("%.1fk"):format(val / 1000)
-	elseif (val < 1000000000) then
-		return ("%.2fm"):format(val / 1000000)
-	else
-		return ("%.2fg"):format(val / 1000000000)
-	end
-end
-
-local function SetFormattedBarValues(bar, cur, max)
-	if cur > 0 then
-		if ns.Classic and t.isPlayer and not t.isMe then
-			bar:SetFormattedText("%s%%", FormatValue(cur))
-		else
-			bar:SetFormattedText("%s / %s", FormatValue(cur), FormatValue(max))
-		end
-	elseif max then
-		bar:SetText(DEAD)
-	end
-end
-
-local function GetRGBAAsBytes(color)
-	return Round(color[1] * 255), Round(color[2] * 255), Round(color[3] * 255), Round((color[4] or 1) * 255)
-end
-
-local function GenerateHexColor(color)
-	return ("ff%.2x%.2x%.2x"):format(GetRGBAAsBytes(color))
-end
-
-local function GenerateHexColorMarkup(color)
-	return "|c"..GenerateHexColor(color)
+local function RefreshPlayerLevel()
+	ns.playerLevel = UnitLevel("player")
+	ns.questGreenRange = GetQuestGreenRange()
 end
 
 --------------------------------------------------------------------------------------------------------
--- Functions
+-- Currently-hovered unit
 --------------------------------------------------------------------------------------------------------
 
-local function SetDefaultNineSliceColor(tip)
+ns.activeUnit = {}
+
+local function StatusBar_OnValueChanged(self)
+	if self ~= GameTooltipStatusBar or not ns.activeUnit.token then
+		return
+	end
+
+	GameTooltipStatusBar:SetStatusBarColor(ns.activeUnit.color:GetRGBA())
+
+	if ns.cfg.showBarValues then
+		GameTooltipStatusBar.text:SetText(ns.GetHealthBarText(ns.activeUnit.token))
+	end
+end
+
+local function OnTooltipCleared(tip)
+	if tip.ItemTooltip and not tip.ItemTooltip:IsShown() then
+		tip:SetPadding(0, 0)
+	end
+
+	GameTooltipStatusBar.text:SetText("")
+	ns.SetDefaultNineSliceColor(tip)
+
+	if ns.Retail then
+		ns.activeUnit = {}
+	end
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Shared tooltip visuals
+--------------------------------------------------------------------------------------------------------
+
+local TooltipLayout = {
+	["TopRightCorner"] = { atlas = "Tooltip-NineSlice-CornerTopRight" },
+	["TopLeftCorner"] = { atlas = "Tooltip-NineSlice-CornerTopLeft" },
+	["BottomLeftCorner"] = { atlas = "Tooltip-NineSlice-CornerBottomLeft" },
+	["BottomRightCorner"] = { atlas = "Tooltip-NineSlice-CornerBottomRight" },
+	["TopEdge"] = { atlas = "_Tooltip-NineSlice-EdgeTop" },
+	["BottomEdge"] = { atlas = "_Tooltip-NineSlice-EdgeBottom" },
+	["LeftEdge"] = { atlas = "!Tooltip-NineSlice-EdgeLeft" },
+	["RightEdge"] = { atlas = "!Tooltip-NineSlice-EdgeRight" },
+	["Center"] = { layer = "BACKGROUND", atlas = "Tooltip-NineSlice-Center", x = -4, y = 4, x1 = 4, y1 = -4 },
+}
+
+function ns.SetDefaultNineSliceColor(tip)
 	if not tip or tip.IsEmbedded then
 		return
 	end
 
 	if tip.NineSlice then
-		-- print(unpack(cfg.tipColor))
-		tip.NineSlice:SetCenterColor(unpack(cfg.tipColor))
-		tip.NineSlice:SetBorderColor(unpack(cfg.tipBorderColor))
+		tip.NineSlice:SetCenterColor(unpack(ns.cfg.tipColor))
+		tip.NineSlice:SetBorderColor(unpack(ns.cfg.tipBorderColor))
 	end
 end
 
-local function GetLevelLineIndex(tip)
-	for i = 2, tip:NumLines() do
-		local leftText = _G[tip:GetName().."TextLeft"..i]:GetText()
-		if leftText and strfind(leftText, "^"..LEVEL.." %d+") then
-			return i
-		end
+local function STT_SetBackdropStyle(tip)
+	if not tip or tip.IsEmbedded then
+		return
 	end
 
-	return false
+	if tip.NineSlice then
+		NineSliceUtil.ApplyLayout(tip.NineSlice, TooltipLayout)
+	end
+
+	ns.SetDefaultNineSliceColor(tip)
 end
 
-local function GetLevelLineIndexFromTooltipData(data)
-	local offset = 0
-	if data.lines[1].leftText == "" then
-		offset = -1
-	end
-	for i = 2, 4 do
-		local text = data.lines[i] and data.lines[i].leftText
-		if text and strfind(text, LEVEL) then
-			return i + offset
-		end
-	end
-
-	return false
-end
-
-local function RemoveUnwantedLines(tip)
-	local line, text
-	for i = 2, tip:NumLines() do
-		line = _G["GameTooltipTextLeft"..i]
-		text = line:GetText()
-		if (cfg.hideFactionText) and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
-			line:SetText("")
-		elseif (cfg.hidePvpText) and (text == PVP_ENABLED) then
-			line:SetText("")
-		elseif (cfg.hideSubFactionText) and FactionNames[text] then
-			line:SetText("")
-		end
-	end
-end
-
-local function GetEmptyTrailingLines(tip)
-	local frame
-	local count = 0
-	for i = 2, tip:NumLines() do
-		frame = _G[tip:GetName().."TextLeft"..i]
-		if frame and (frame:GetStringHeight() == 0 or not frame:GetText()) then
-			count = count + 1
-		else
-			count = 0
-		end
-	end
-
-	return count
-end
-
-local function GetEmptyTrailingLine(tip)
-	local count = GetEmptyTrailingLines(tip)
-	if count > 0 then
-		return _G["GameTooltipTextLeft"..tip:NumLines() + 1 - count]
-	else
-		tip:AddLine(" ")
-		return _G["GameTooltipTextLeft"..tip:NumLines()]
-	end
-end
-
-local function AddIdLine(tip, id)
-	if cfg.showId and id ~= "" then
-		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], GenerateHexColor(cfg.infoColor1))..WrapTextInColorCode(id, GenerateHexColor(cfg.infoColor2)))
-	end
-end
-
-local function SetNineSliceBorderColor(tip, itemLinkOrID)
+local itemQualityCache = {}
+function ns.SetNineSliceBorderColor(tip, itemLinkOrID)
 	if tip.IsEmbedded then
 		return
 	end
 
-	if itemCache[itemLinkOrID] then
-		local r, g, b = C_Item.GetItemQualityColor(itemCache[itemLinkOrID])
+	if itemQualityCache[itemLinkOrID] then
+		local r, g, b = C_Item.GetItemQualityColor(itemQualityCache[itemLinkOrID])
 		tip.NineSlice:SetBorderColor(r, g, b, 1)
 		return
 	end
@@ -323,225 +263,52 @@ local function SetNineSliceBorderColor(tip, itemLinkOrID)
 	if item:IsItemEmpty() then
 		return
 	end
-	-- This function also executes when the item is already loaded
+	-- Also fires immediately if the item is already loaded.
 	item:ContinueOnItemLoad(function()
 		local rarity = item:GetItemQuality()
 		local r, g, b = C_Item.GetItemQualityColor(rarity)
 		tip.NineSlice:SetBorderColor(r, g, b, 1)
-		itemCache[itemLinkOrID] = rarity
+		itemQualityCache[itemLinkOrID] = rarity
 	end)
 end
 
-local function GetTarget(unit)
-	local target = unit.."target"
-	local targetName = UnitName(target)
-	return target, targetName
-end
-
-local function CalculateYOffset(tip)
-	local yPadding = GetEmptyTrailingLines(tip) * -3
-	return yPadding
-end
-
-local function GetUnitFromTooltip(tip)
-	local _, unit = tip:GetUnit()
-	if unit then
-		return unit
-	end
-
-	return "mouseover"
-end
-
-local function StatusBar_OnValueChanged(self)
-	if not t.u then return end
-	local unit = t.u
-
-	if ns.Classic then
-		GameTooltipStatusBar:SetStatusBarColor(unpack(t.color))
-	end
-
-	if cfg.showBarValues then
-		local current = UnitHealth(unit)
-		local max = UnitHealthMax(unit)
-
-		if (current < 0) or (current > max) then
-			return
-		end
-
-		SetFormattedBarValues(GameTooltipStatusBar.text, current, max)
+function ns.AddIdLine(tip, id)
+	if ns.cfg.showId and id ~= "" then
+		tip:AddLine(" ")
+		tip:AddLine(WrapTextInColorCode(L["id"], ns.GenerateHexColor(ns.cfg.infoColor1))..WrapTextInColorCode(id, ns.GenerateHexColor(ns.cfg.infoColor2)))
 	end
 end
 
-local function OnTooltipShow(tip)
-	if not u then
-		return
+-- Scans rendered lines for "Level NN" text
+function ns.FindLevelLineByText(tip)
+	for i = 2, tip:NumLines() do
+		local leftText = _G[tip:GetName().."TextLeft"..i]:GetText()
+		if leftText and strfind(leftText, "^"..LEVEL.." [%d%?]+") then
+			return i
+		end
 	end
 
-	tip:SetPadding(0, CalculateYOffset(tip))
+	return false
 end
 
-local function OnTooltipSetUnit(tip, data)
-	if tip ~= GameTooltip then
-		return
-	end
-
-	local unit
-	if data and data.guid then
-		unit = UnitTokenFromGUID(data.guid)
-	else
-		unit = GetUnitFromTooltip(tip)
-	end
-
-	if not unit then
-		tip:Hide()
-		return
-	end
-
-	RemoveUnwantedLines(tip)
-
-	u = unit
-	local isPlayer = UnitIsPlayer(unit)
-	local guild = GetGuildInfo(unit)
-	local _, classID = UnitClass(unit)
-	local reactionIndex = GetUnitReactionIndex(unit)
-	local reactionColor = cfg["colReact"..reactionIndex]
-	local reactionColorMarkup = GenerateHexColorMarkup(reactionColor)
-	local isPetWild, isPetCompanion = UnitIsWildBattlePet and UnitIsWildBattlePet(unit), UnitIsBattlePetCompanion and UnitIsBattlePetCompanion(unit)
-
-	local fullName
-	if data and data.lines then
-	for _, lineData in ipairs(data.lines) do
-		if lineData.type == Enum.TooltipDataLineType.UnitName then
-			fullName = lineData.leftText
-			break
-		end
-	end
-	else
-		fullName = UnitName(unit)
-	end
-	if not fullName then return end
-
-	-- UnitName
-	local nameString = reactionColorMarkup..fullName
-	local color = reactionColor
-	if isPlayer then
-		local name, realm = UnitName(unit)
-		color = { CLASS_COLORS[classID]:GetRGBA() }
-		nameString = ClassColorMarkup[classID]..name
-
-		if cfg.showPlayerTitle then
-			if realm then
-				nameString = ClassColorMarkup[classID]..gsub(fullName, "-"..realm, "")
-			else
-				nameString = ClassColorMarkup[classID]..fullName
-			end
-		end
-		if cfg.showRealm then
-			if cfg.showSameRealm then
-				if not realm then
-					realm = GetRealmName()
-				end
-			end
-			nameString = nameString..(realm and "-"..realm or "")
-		end
-		-- dc, afk or dnd
-		local status = (not UnitIsConnected(unit) and " <DC>") or (UnitIsAFK(unit) and " <AFK>") or (UnitIsDND(unit) and " <DND>")
-		if status then
-			nameString = nameString..COLOR_WHITE..status
-		end
-	end
-	GameTooltipTextLeft1:SetFormattedText("%s", nameString)
-	tip.NineSlice:SetBorderColor(unpack(color))
-	GameTooltipStatusBar:SetStatusBarColor(unpack(color))
-
-	-- Guild
-	if isPlayer and guild then
-		local pGuild = GetGuildInfo("player")
-		local guildColor = (guild == pGuild and GenerateHexColorMarkup(cfg.colSameGuild) or GenerateHexColorMarkup(cfg.colGuild))
-		if ns.Classic then
-			tip:AddLine(GameTooltipTextLeft2:GetText(), 1, 1, 1)
-		end
-		GameTooltipTextLeft2:SetFormattedText("%s<%s>", guildColor, guild)
-	end
-
-	-- Level + Classification
-	local level = (isPetWild or isPetCompanion) and UnitBattlePetLevel(unit) or UnitLevel(unit) or -1
-	local classification = UnitClassification(unit) or ""
-	local unitClass = isPlayer and (UnitRace(unit) .. " " .. ClassColorMarkup[classID] .. UnitClass(unit) .. "|r") or (isPetWild or isPetCompanion) and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)] or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
-	local levelColor = GetDifficultyLevelColor(level ~= -1 and level or 500)
-	local levelText = (cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
-	local levelLine = data and GetLevelLineIndexFromTooltipData(data) or GetLevelLineIndex(tip)
-	if levelLine then
-		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s%s", LEVEL, levelColor..levelText.."|r", unitClass)
-	end
-
-	-- Target
-	if cfg.showTarget then
-		local target, targetName = GetTarget(unit)
-		if target then
-			local text = ""
-			if targetName and (targetName ~= UNKNOWNOBJECT and targetName ~= "" or UnitExists(target)) then
-				text = GenerateHexColorMarkup(cfg["targetColor"])..BINDING_HEADER_TARGETING..": "
-				if (UnitIsUnit("player", target)) then
-					text = text..COLOR_WARNING..cfg.targetYouText.." |r"
-				end
-				if (UnitIsPlayer(target)) then
-					local _, targetClassID = UnitClass(target)
-					text = text..(ClassColorMarkup[targetClassID])
-				else
-					local targetReactionIndex = UnitReaction("player", target)
-					local targetReactionColor = cfg["colReact"..targetReactionIndex]
-					local targetReactionColorMarkup = GenerateHexColorMarkup(targetReactionColor)
-					text = text..targetReactionColorMarkup
-				end
-
-				local line = GetEmptyTrailingLine(tip)
-				line:SetFormattedText("%s%s", text, targetName)
-			end
-		end
-	end
-
-	local textWidth = _G[ADDON_NAME.."StatusBarHealthText"]:GetStringWidth()
-	if textWidth and GameTooltipStatusBar:IsShown() then
-		tip:SetMinimumWidth(textWidth + 12)
-	end
-
-	for i = 1, tip:NumLines() do
-		local line = _G[tip:GetName().."TextLeft"..i]
-		line:SetSpacing(0)
-	end
-	-- force health bar update
-	StatusBar_OnValueChanged(GameTooltipStatusBar)
-
-	tip:Show()
+function ns.AddEmptyTrailingLine(tip)
+	tip:AddLine(" ")
+	return _G[tip:GetName().."TextLeft"..tip:NumLines()]
 end
 
-local function OnTooltipSetItem(tip)
+--------------------------------------------------------------------------------------------------------
+-- Item/Spell/Toy/Macro tooltips
+--------------------------------------------------------------------------------------------------------
+
+local function OnTooltipSetItem(tip, data)
 	if tip ~= GameTooltip and tip ~= ItemRefTooltip and tip ~= ItemRefShoppingTooltip1 and tip ~= ItemRefShoppingTooltip2 and tip ~= ShoppingTooltip1 and tip ~= ShoppingTooltip2 then
 		return
 	end
 
-	if not tip.GetItem then
-		Mixin(tip, GameTooltipDataMixin)
+	if data and data.id then
+		tip.NineSlice:SetBorderColor(data.lines[1].leftColor:GetRGBA())
+		ns.AddIdLine(tip, data.id)
 	end
-
-	local _, link = tip:GetItem()
-	if not link then
-		return
-	end
-
-	SetNineSliceBorderColor(tip, link)
-
-	local id = strmatch(link, "item:(%d+)")
-	if id then
-		AddIdLine(tip, id)
-	end
-end
-
-local function SetHyperlink_Hook(self, hyperLink)
-	local refString = hyperLink:match("|H([^|]+)|h") or hyperLink
-	local linkType = refString:match("^[^:]+")
-	-- TODO
 end
 
 local function OnTooltipSetSpell(tip, data)
@@ -549,16 +316,9 @@ local function OnTooltipSetSpell(tip, data)
 		return
 	end
 
-	local id
-
-	if data and data.id then
-		id = data.id
-	else
-		id = select(2, tip:GetSpell())
-	end
-
+	local id = (data and data.id) or select(2, tip:GetSpell())
 	if id then
-		AddIdLine(tip, id)
+		ns.AddIdLine(tip, id)
 	end
 end
 
@@ -568,16 +328,7 @@ local function OnTooltipSetUnitAura(tip, data)
 	end
 
 	if data.id then
-		AddIdLine(tip, data.id)
-	end
-end
-
-local function SetUnitAura_Hook(tip, unit, index, filter)
-	local _, _, _, _, _, _, _, _, _, spellId = UnitAura(unit, index, filter)
-
-	if spellId then
-		AddIdLine(tip, spellId)
-		tip:Show()
+		ns.AddIdLine(tip, data.id)
 	end
 end
 
@@ -587,8 +338,8 @@ local function OnTooltipSetToy(tip, data)
 	end
 
 	if data.id then
-		SetNineSliceBorderColor(tip, data.id)
-		AddIdLine(tip, data.id)
+		ns.SetNineSliceBorderColor(tip, data.id)
+		ns.AddIdLine(tip, data.id)
 	end
 end
 
@@ -597,13 +348,92 @@ local function OnTooltipSetMacro(tip, data)
 		return
 	end
 
-	if data and data.lines[1] and data.lines[1].tooltipID then
+	if data and data.lines[2] then
 		if data.lines[1].tooltipType == 0 then
-			SetNineSliceBorderColor(tip, data.lines[1].tooltipID)
+			tip.NineSlice:SetBorderColor(data.lines[2].leftColor:GetRGBA())
 		end
-		AddIdLine(tip, data.lines[1].tooltipID)
+		ns.AddIdLine(tip, data.lines[1].tooltipID)
 	end
 end
+
+ns.OnTooltipSetItem = OnTooltipSetItem
+ns.OnTooltipSetSpell = OnTooltipSetSpell
+ns.OnTooltipSetUnitAura = OnTooltipSetUnitAura
+ns.OnTooltipSetToy = OnTooltipSetToy
+ns.OnTooltipSetMacro = OnTooltipSetMacro
+
+--------------------------------------------------------------------------------------------------------
+-- Anchor
+--------------------------------------------------------------------------------------------------------
+
+local function GTT_SetDefaultAnchor(tip, parent)
+	if not parent then
+		return
+	end
+
+	tip:SetOwner(parent, "ANCHOR_NONE")
+
+	if ns.Era then
+		tip:ClearAllPoints()
+		ns.EraModule.SetCustomAnchorPoint(tip)
+	end
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Status bar (health bar) styling
+--------------------------------------------------------------------------------------------------------
+
+local function SetupGameTooltipStatusBar()
+	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
+	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
+	GameTooltipStatusBar.bg:SetAllPoints()
+	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
+	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.barFontFace), ns.cfg.barFontSize, ns.cfg.barFontFlags)
+	GameTooltipStatusBar:HookScript("OnShow", function(self)
+		if ns.cfg.showBar then
+			self:Show()
+		else
+			self:Hide()
+		end
+	end)
+end
+
+function ns.UpdateTooltipScale()
+	for _, tip in next, ns.tooltips do
+		tip:SetScale(ns.cfg.tipScale)
+	end
+end
+
+function ns.UpdateGameTooltipFont()
+	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.textFontFace) or ns.cfg.textFontFace
+	local size = ns.cfg.textFontSize
+	local flag = ns.cfg.textFontFlags == "NONE" and "" or ns.cfg.textFontFlags
+	GameTooltipText:SetFont(font, size, flag)
+	GameTooltipHeaderText:SetFont(font, size + 2, flag)
+	GameTooltipTextSmall:SetFont(font, size, flag)
+end
+
+function ns.UpdateGameTooltipStatusBarVisibility()
+	if ns.cfg.showBar and ns.cfg.showBarValues then
+		GameTooltipStatusBar.text:Show()
+	else
+		GameTooltipStatusBar.text:Hide()
+	end
+end
+
+function ns.UpdateGameTooltipStatusBarTexture()
+	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.cfg.barTexture))
+	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.cfg.barTexture))
+end
+
+function ns.UpdateGameTooltipStatusBarText()
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.barFontFace), ns.cfg.barFontSize, ns.cfg.barFontFlags)
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Pet battle border coloring
+--------------------------------------------------------------------------------------------------------
 
 local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 	if C_PetBattles.IsWildBattle() then
@@ -612,277 +442,66 @@ local function PetBattleUnitTooltip_UpdateForUnit(tip, owner, index)
 	end
 end
 
-local function OnTooltipCleared(tip)
-	if tip.ItemTooltip and not tip.ItemTooltip:IsShown() then
-		tip:SetPadding(0, 0)
-	end
-
-	GameTooltipStatusBar.text:SetText("")
-
-	u = nil
-end
-
-local function SetupGameTooltipStatusBar()
-	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
-	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
-	GameTooltipStatusBar.bg:SetAllPoints()
-	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
-	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar)
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
-	GameTooltipStatusBar:HookScript("OnShow", function(self)
-		if cfg.showBar then
-			self:Show()
-		else
-			self:Hide()
-		end
-	end)
-end
-
-local function CreateAnchor()
-	local anchor = CreateFrame("Frame", ADDON_NAME.."Anchor", nil, "BackdropTemplate")
-	anchor:SetSize(100, 20)
-	anchor:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -300, 180)
-	anchor:EnableMouse(true)
-	anchor:SetMovable(true)
-	anchor:RegisterForDrag("LeftButton")
-	anchor:SetScript("OnDragStart", anchor.StartMoving)
-	anchor:SetScript("OnDragStop", function(self)
-		self:StopMovingOrSizing()
-	end)
-
-	local backdropInfo =
-	{
-		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		tile = true,
-		tileEdge = true,
-		tileSize = 8,
-		edgeSize = 8,
-		insets = { left = 1, right = 1, top = 1, bottom = 1 },
-	}
-
-	anchor:SetBackdrop(backdropInfo)
-	anchor:Hide()
-end
-
-local function GTT_SetDefaultAnchor(tip, parent)
-	if not parent then
-		return
-	end
-
-	local owner = select(2, tip:GetPoint())
-	tip:SetOwner(owner, "ANCHOR_NONE")
-	tip:ClearAllPoints()
-	if ns.Retail then
-		tip:SetPoint("BOTTOMLEFT", owner, "BOTTOMLEFT")
-	else
-		local point
-		local screenWidth = UIParent:GetWidth()
-		local frameCenterX = tip:GetCenter()
-		if not frameCenterX then return end
-		if frameCenterX < screenWidth / 2 then
-			point = "BOTTOMLEFT"
-		else
-			point = "BOTTOMRIGHT"
-		end
-
-		tip:SetPoint(point, ADDON_NAME.."Anchor", point)
-	end
-end
-
-local function STT_SetBackdropStyle(tip)
-	SetDefaultNineSliceColor(tip)
-end
-
-local function MemberList_OnEnter(self)
-	local level, race, classID
-	if self.GetMemberInfo then
-		local info = self:GetMemberInfo()
-		if not info then
-			return
-		end
-		classID = info.classID
-		level = info.level
-		race = info.race
-	else
-		return
-	end
-
-	if not classID then
-		return
-	end
-
-	local text = GameTooltipTextLeft1:GetText()
-	if not text then
-		return
-	end
-
-	if cfg.showRealm and cfg.showSameRealm then
-		if (not strmatch(text, "%a+%-.+")) then
-			text = text.."-"..GetRealmName()
-		end
-	else
-		text = gsub(text, "%-.+", "")
-	end
-
-	local classInfo = C_CreatureInfo.GetClassInfo(classID)
-	local color = { CLASS_COLORS[classInfo.classFile]:GetRGBA() }
-	GameTooltipTextLeft1:SetFormattedText("%s", ClassColorMarkup[classInfo.classFile]..text)
-
-	local raceInfo = C_CreatureInfo.GetRaceInfo(race)
-	local levelColor = GetDifficultyLevelColor(level ~= -1 and level or 500)
-	local levelLine = GetLevelLineIndex(GameTooltip)
-	if levelLine then
-		_G["GameTooltipTextLeft"..levelLine]:SetFormattedText("%s %s %s", levelColor..level.."|r", raceInfo.raceName, ClassColorMarkup[classInfo.classFile]..classInfo.className)
-	end
-
-	GameTooltip.NineSlice:SetBorderColor(unpack(color))
-	GameTooltip:Show()
-end
-
-local function MemberList_OnLeave()
-	GameTooltip:Hide()
-end
-
 --------------------------------------------------------------------------------------------------------
--- Config update
+-- Hook registration
 --------------------------------------------------------------------------------------------------------
 
-local function UpdateTooltipScale()
-	for _, tip in next, tips do
-		tip:SetScale(cfg.tipScale)
-	end
-end
-ns.UpdateTooltipScale = UpdateTooltipScale
-
-local function UpdateGameTooltipFont()
-	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.textFontFace)
-	local size = cfg.textFontSize
-	local flag = cfg.textFontFlags == "NONE" and "" or cfg.textFontFlags
-	GameTooltipText:SetFont(font, size, flag)
-	GameTooltipHeaderText:SetFont(font, size + 2, flag)
-	GameTooltipTextSmall:SetFont(font, size, flag)
-end
-ns.UpdateGameTooltipFont = UpdateGameTooltipFont
-
-local function UpdateGameTooltipStatusBarVisibility()
-	if cfg.showBar then
-		if cfg.showBarValues then
-			GameTooltipStatusBar.text:Show()
-		else
-			GameTooltipStatusBar.text:Hide()
-		end
-	else
-		GameTooltipStatusBar.text:Hide()
-	end
-end
-ns.UpdateGameTooltipStatusBarVisibility = UpdateGameTooltipStatusBarVisibility
-
-local function UpdateGameTooltipStatusBarTexture()
-	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", cfg.barTexture))
-	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", cfg.barTexture))
-end
-ns.UpdateGameTooltipStatusBarTexture = UpdateGameTooltipStatusBarTexture
-
-local function UpdateGameTooltipStatusBarText()
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", cfg.barFontFace), cfg.barFontSize, cfg.barFontFlags)
-end
-ns.UpdateGameTooltipStatusBarText = UpdateGameTooltipStatusBarText
-
---------------------------------------------------------------------------------------------------------
--- Hooks
---------------------------------------------------------------------------------------------------------
-
-local function HookTips()
-	for _, tip in next, tips do
-		SetDefaultNineSliceColor(tip)
+local function RegisterCommonHooks()
+	for _, tip in next, ns.tooltips do
+		ns.SetDefaultNineSliceColor(tip)
 	end
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
 	ItemRefTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
-	hooksecurefunc(GameTooltip, "Show", OnTooltipShow)
-	GameTooltipStatusBar:SetScript("OnValueChanged", StatusBar_OnValueChanged)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
+	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	if ns.Retail then
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
-		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, OnTooltipSetMacro)
-	else
-		for _, tip in ipairs({GameTooltip, ItemRefTooltip}) do
-			hooksecurefunc(tip, "SetHyperlink", SetHyperlink_Hook)
-			hooksecurefunc(tip, "SetUnitAura", SetUnitAura_Hook)
-			hooksecurefunc(tip, "SetUnitBuff", SetUnitAura_Hook)
-			hooksecurefunc(tip, "SetUnitDebuff", SetUnitAura_Hook)
-			tip:HookScript("OnTooltipSetUnit", OnTooltipSetUnit)
-			tip:HookScript("OnTooltipSetItem", OnTooltipSetItem)
-			tip:HookScript("OnTooltipSetSpell", OnTooltipSetSpell)
-		end
-
-		hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
-	end
+	local FlavorModule = ns.Retail and ns.RetailModule or ns.EraModule
+	FlavorModule.Init()
+	ns.GetHealthBarText = FlavorModule.GetHealthBarText
 end
+
 --------------------------------------------------------------------------------------------------------
--- Events
+-- Lifecycle
 --------------------------------------------------------------------------------------------------------
 
-function mt:PLAYER_LOGIN(event)
-	UpdateGameTooltipStatusBarTexture()
-	UpdateGameTooltipStatusBarText()
-	UpdateGameTooltipFont()
+local mt = CreateFrame("Frame")
 
-	self.playerLevel = UnitLevel("player")
-	self:UnregisterEvent(event)
+function mt:PLAYER_LOGIN()
+	ns.UpdateGameTooltipStatusBarTexture()
+	ns.UpdateGameTooltipStatusBarText()
+	ns.UpdateGameTooltipFont()
+	RefreshPlayerLevel()
 end
 
-function mt:PLAYER_LEVEL_UP(event, newLevel)
-	self.playerLevel = newLevel
-end
+mt:SetScript("OnEvent", function(self, event, ...)
+	self[event](self, event, ...)
+end)
+mt.PLAYER_ENTERING_WORLD = RefreshPlayerLevel
+mt.PLAYER_LEVEL_UP = RefreshPlayerLevel
+mt.PLAYER_LEVEL_CHANGED = RefreshPlayerLevel
+mt:RegisterEvent("PLAYER_LOGIN")
+mt:RegisterEvent("PLAYER_LEVEL_UP")
+mt:RegisterEvent("PLAYER_LEVEL_CHANGED")
+mt:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 	if not ManiaTipDB then
 		ManiaTipDB = {}
 	end
 
-	cfg = setmetatable(ManiaTipDB, { __index = defaults })
-	ns.cfg = cfg
-
-	if not ns.Retail then
-		CreateAnchor()
-	end
+	ns.cfg = setmetatable(ManiaTipDB, { __index = ns.defaults })
 
 	SetupGameTooltipStatusBar()
-	HookTips()
-	UpdateTooltipScale()
-end)
-
-EventUtil.ContinueOnAddOnLoaded("Blizzard_Communities", function()
-	local hooked = {}
-	local function OnTokenButtonAcquired(_, frame)
-		if not hooked[frame] then
-		frame:HookScript("OnEnter", MemberList_OnEnter)
-		frame:HookScript("OnLeave", MemberList_OnLeave)
-			hooked[frame] = true
-		end
-	end
-
-	local iterateExisting = true
-	local owner = nil
-	ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, OnTokenButtonAcquired, owner, iterateExisting)
+	RegisterCommonHooks()
+	ns.UpdateTooltipScale()
 end)
 
 EventUtil.ContinueOnAddOnLoaded("Blizzard_Calendar", function()
-	SetDefaultNineSliceColor(CalendarContextMenu)
+	ns.SetDefaultNineSliceColor(CalendarContextMenu)
 end)
 
 EventUtil.ContinueOnAddOnLoaded("Blizzard_PetBattleUI", function()
 	hooksecurefunc("PetBattleUnitTooltip_UpdateForUnit", PetBattleUnitTooltip_UpdateForUnit)
 end)
-
-mt:SetScript("OnEvent", function(self, event, ...) self[event](self, event, ...) end)
-mt:RegisterEvent("PLAYER_LOGIN")
-mt:RegisterEvent("PLAYER_LEVEL_UP")

@@ -1,4 +1,4 @@
-## Interface: 110200
+## Interface: 11508, 120007, 120100
 
 ## Title: ManiaTip
 ## Notes: Tooltip Enhancement Addon
@@ -18,4 +18,7 @@ Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibDDI-1.0\lib.lua
 Locales.lua
 Core.lua
+UnitInfo.lua
+Flavors\Retail.lua [AllowLoadGameType mainline]
+Flavors\Era.lua [AllowLoadGameType vanilla]
 Config.lua
