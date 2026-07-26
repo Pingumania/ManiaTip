@@ -1,3 +1,14 @@
+### v12 - 2026-07-26
+
+* Fix tooltip anchor position on Retail
+* Restore guild, level/classification, and target info on Retail unit tooltips
+* Restore health bar percentage/value display
+* Restore faction and PvP text hiding support on Retail
+* Fix missing "(Boss)" tag on unknown-level (Level ??) units
+* Various fixes for upcoming WoW API restrictions affecting unit/class colors
+
+*****
+
 ### v11 - 2025-10-05
 
 * Update TOC for patch 11.2.0
