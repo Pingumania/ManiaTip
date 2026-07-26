@@ -149,8 +149,6 @@ function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 	local guildText = BuildGuildDisplay(unit, isPlayer)
 	if guildText then
 		if ns.Era then
-			-- Era's line 2 isn't guaranteed to be blank/guild already;
-			-- preserve whatever was there by pushing it down first.
 			tip:AddLine(GameTooltipTextLeft2:GetText(), 1, 1, 1)
 		end
 		GameTooltipTextLeft2:SetFormattedText("%s", guildText)
