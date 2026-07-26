@@ -1,47 +1,47 @@
-### v11 - 2025/10/05
+### v11 - 2025-10-05
 
 * Update TOC for patch 11.2.0
 
 *****
 
-### v10 - 2025/04/21
+### v10 - 2025-04-21
 
 * Add ruRU translation (Thanks to ZamestoTV)
 
 *****
 
-### v9 - 2025/04/18
+### v9 - 2025-04-18
 
 * Update for patch 11.1.0
 
 *****
 
-### v8 - 2024/07/26
+### v8 - 2024-07-26
 
 * Update for patch 11.0.2
 
 *****
 
-### v8 - 2023/12/18
+### v8 - 2023-12-18
 
 * Update for patch 11.0.0
 
 *****
 
-### v7 - 2023/11/09
+### v7 - 2023-11-09
 
 * Fix guild frame lag
 * Add option to hide IDs
 
 *****
 
-### v6 - 2023/08/27
+### v6 - 2023-08-27
 
 * Update ToC for patch 10.2.0
 
 *****
 
-### v5 - 2023/05/03
+### v5 - 2023-05-03
 
 * Update ToC for patch 10.1.5
 * Add option to set the scale of tooltips
@@ -49,20 +49,20 @@
 
 *****
 
-### v4 - 2023/05/03
+### v4 - 2023-05-03
 
 * Update ToC for 10.1.0 (for real this time)
 
 *****
 
-### v3 - 2023/04/25
+### v3 - 2023-04-25
 
 * Update ToC for 10.1.0
 * Show ID on macro tooltips
 
 *****
 
-### v2 - 2022/11/27
+### v2 - 2022-11-27
 
 * Update ToC for 10.0.7
 * Make small tooltip text the same size as normal text
@@ -70,6 +70,6 @@
 
 *****
 
-### v1 - 2022/09/12
+### v1 - 2022-09-12
 
 * Initial release
