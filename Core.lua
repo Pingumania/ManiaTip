@@ -65,6 +65,19 @@ ns.defaults = {
 	infoColor2 = { 1,   1,   1, 1 },
 }
 
+local function IsValidColor(value)
+	return type(value) == "table" and type(value[1]) == "number" and type(value[2]) == "number" and type(value[3]) == "number"
+end
+
+local function RepairSavedVariables()
+	for key, default in next, ns.defaults do
+		local value = ManiaTipDB[key]
+		if value ~= nil and (type(value) ~= type(default) or (IsValidColor(default) and not IsValidColor(value))) then
+			ManiaTipDB[key] = nil
+		end
+	end
+end
+
 --------------------------------------------------------------------------------------------------------
 -- Tooltip lists
 --------------------------------------------------------------------------------------------------------
@@ -226,8 +239,10 @@ function ns.SetDefaultNineSliceColor(tip)
 	end
 
 	if tip.NineSlice then
-		tip.NineSlice:SetCenterColor(unpack(ns.cfg.tipColor))
-		tip.NineSlice:SetBorderColor(unpack(ns.cfg.tipBorderColor))
+		local tipColor = IsValidColor(ns.cfg.tipColor) and ns.cfg.tipColor or ns.defaults.tipColor
+		local tipBorderColor = IsValidColor(ns.cfg.tipBorderColor) and ns.cfg.tipBorderColor or ns.defaults.tipBorderColor
+		tip.NineSlice:SetCenterColor(unpack(tipColor))
+		tip.NineSlice:SetBorderColor(unpack(tipBorderColor))
 	end
 end
 
@@ -497,6 +512,7 @@ EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
 		ManiaTipDB = {}
 	end
 
+	RepairSavedVariables()
 	ns.cfg = setmetatable(ManiaTipDB, { __index = ns.defaults })
 
 	SetupGameTooltipStatusBar()
