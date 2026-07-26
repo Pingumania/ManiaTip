@@ -1,0 +1,20 @@
+{
+    "name": "WoW Addon Dev",
+    "image": "forgejo.nethog.xyz/mbr/devcontainer/wow-lua:latest",
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "remoteUser": "dev",
+    "mounts": [
+        "source=claude-config,target=/home/dev/.claude,type=volume"
+    ],
+    "postCreateCommand": "sh -c '[ -e ~/.claude/config.json ] || echo {} > ~/.claude/config.json; ln -sf ~/.claude/config.json ~/.claude.json'",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "anthropic.claude-code",
+                "TradeSkillMaster.wowlua-ls",
+                "stanzilla.vscode-wow-toc"
+            ]
+        }
+    }
+}
