@@ -1,53 +1,75 @@
-ManiaTip Changes | v11
-----------------------
-- Update TOC for patch 11.2.0
+### v11 - 2025/10/05
 
-ManiaTip Changes | v10
-----------------------
-- Add ruRU translation (Thanks to ZamestoTV)
+* Update TOC for patch 11.2.0
 
-ManiaTip Changes | v9
----------------------
-- Update for patch 11.1.0
+*****
 
-ManiaTip Changes | v8
----------------------
-- Update for patch 11.0.2
+### v10 - 2025/04/21
 
-ManiaTip Changes | v8
----------------------
-- Update for patch 11.0.0
+* Add ruRU translation (Thanks to ZamestoTV)
 
-ManiaTip Changes | v7
----------------------
-- Fix guild frame lag
-- Add option to hide IDs
+*****
 
-ManiaTip Changes | v6
----------------------
-- Update ToC for patch 10.2.0
+### v9 - 2025/04/18
 
-ManiaTip Changes | v5
----------------------
-- Update ToC for patch 10.1.5
-- Add option to set the scale of tooltips
-- Add option to hide the healthbar
+* Update for patch 11.1.0
 
-ManiaTip Changes | v4
----------------------
-- Update ToC for 10.1.0 (for real this time)
+*****
 
-ManiaTip Changes | v3
----------------------
-- Update ToC for 10.1.0
-- Show ID on macro tooltips
+### v8 - 2024/07/26
 
-ManiaTip Changes | v2
----------------------
-- Update ToC for 10.0.7
-- Make small tooltip text the same size as normal text
-- Fix healthbar sometimes showing the wrong color
+* Update for patch 11.0.2
 
-ManiaTip Changes | v1
----------------------
-- Initial release
+*****
+
+### v8 - 2023/12/18
+
+* Update for patch 11.0.0
+
+*****
+
+### v7 - 2023/11/09
+
+* Fix guild frame lag
+* Add option to hide IDs
+
+*****
+
+### v6 - 2023/08/27
+
+* Update ToC for patch 10.2.0
+
+*****
+
+### v5 - 2023/05/03
+
+* Update ToC for patch 10.1.5
+* Add option to set the scale of tooltips
+* Add option to hide the healthbar
+
+*****
+
+### v4 - 2023/05/03
+
+* Update ToC for 10.1.0 (for real this time)
+
+*****
+
+### v3 - 2023/04/25
+
+* Update ToC for 10.1.0
+* Show ID on macro tooltips
+
+*****
+
+### v2 - 2022/11/27
+
+* Update ToC for 10.0.7
+* Make small tooltip text the same size as normal text
+* Fix healthbar sometimes showing the wrong color
+
+*****
+
+### v1 - 2022/09/12
+
+* Initial release
