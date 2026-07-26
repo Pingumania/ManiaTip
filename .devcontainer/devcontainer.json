@@ -12,8 +12,7 @@
         "vscode": {
             "extensions": [
                 "anthropic.claude-code",
-                "TradeSkillMaster.wowlua-ls",
-                "stanzilla.vscode-wow-toc"
+                "TradeSkillMaster.wowlua-ls"
             ]
         }
     }
