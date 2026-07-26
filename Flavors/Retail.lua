@@ -7,10 +7,8 @@ local Retail = ns.RetailModule
 -- Health bar text
 --------------------------------------------------------------------------------------------------------
 
-local healthPercentCurve
-
 function Retail.GetHealthBarText(unit)
-	return ("%d%%"):format(UnitHealthPercent(unit, true, healthPercentCurve))
+	return ("%d%%"):format(UnitHealthPercent(unit, true, CurveConstants.ScaleTo100))
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -154,10 +152,6 @@ end
 --------------------------------------------------------------------------------------------------------
 
 function Retail.Init()
-	healthPercentCurve = C_CurveUtil.CreateCurve()
-	healthPercentCurve:AddPoint(0, 0)
-	healthPercentCurve:AddPoint(1, 100)
-
 	BuildFactionNames()
 
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, ns.OnTooltipSetItem)
