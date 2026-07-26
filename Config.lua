@@ -1,20 +1,32 @@
-
 local ADDON_NAME, ns = ...
 
 local L = ns.L
 local mt = CreateFrame("Frame")
 
+local function ColorGetter(info)
+	local color = ns.cfg[info[#info]]
+	return color[1], color[2], color[3], color[4] or 1
+end
+
+local function ColorSetter(info, r, g, b, a)
+	ns.cfg[info[#info]] = {r, g, b, a or 1}
+end
+
+local function ColorOption(order, name, width, hasAlpha)
+	return {
+		order = order,
+		name = name,
+		type = "color",
+		width = width,
+		hasAlpha = hasAlpha,
+		get = ColorGetter,
+		set = ColorSetter,
+	}
+end
+
 local function CreateConfig()
 	local fonts = LibStub("LibSharedMedia-3.0"):List("font")
 	local statusbars = LibStub("LibSharedMedia-3.0"):List("statusbar")
-
-	local function ColorGetter(info)
-		return ns.cfg[info][1], ns.cfg[info][2], ns.cfg[info][3], ns.cfg[info][4] or 1
-	end
-
-	local function ColorSetter(info, r, g, b, a)
-		ns.cfg[info] = {r, g, b, a or 1}
-	end
 
 	LibStub("AceConfig-3.0"):RegisterOptionsTable(ADDON_NAME, {
 		type = "group",
@@ -90,143 +102,47 @@ local function CreateConfig()
 				type = "description",
 				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descTooltipColors"]),
 			},
-			tipColor = {
-				order = 22,
-				name = L["tipColor"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			tipBorderColor = {
-				order = 23,
-				name = L["tipBorderColor"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
+			tipColor = ColorOption(22, L["tipColor"], 1.10, true),
+			tipBorderColor = ColorOption(23, L["tipBorderColor"], 1.10, true),
 			descReactionColors = {
 				order = 24,
 				type = "description",
 				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descReactionColors"]),
 			},
-			colReact1 = {
-				order = 25,
-				name = L["colReact1"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact2 = {
-				order = 26,
-				name = L["colReact2"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact3 = {
-				order = 27,
-				name = L["colReact3"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact4 = {
-				order = 28,
-				name = L["colReact4"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact5 = {
-				order = 29,
-				name = L["colReact5"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact6 = {
-				order = 30,
-				name = L["colReact6"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colReact7 = {
-				order = 31,
-				name = L["colReact7"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
+			colReact1 = ColorOption(25, L["colReact1"], 1.10),
+			colReact2 = ColorOption(26, L["colReact2"], 1.10),
+			colReact3 = ColorOption(27, L["colReact3"], 1.10),
+			colReact4 = ColorOption(28, L["colReact4"], 1.10),
+			colReact5 = ColorOption(29, L["colReact5"], 1.10),
+			colReact6 = ColorOption(30, L["colReact6"], 1.10),
+			colReact7 = ColorOption(31, L["colReact7"], 1.10),
 			descInfoColors = {
 				order = 32,
 				type = "description",
 				name = NORMAL_FONT_COLOR:WrapTextInColorCode(L["descInfoColors"]),
 			},
-			infoColor1 = {
-				order = 33,
-				name = L["infoColor1"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			infoColor2 = {
-				order = 34,
-				name = L["infoColor2"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
+			infoColor1 = ColorOption(33, L["infoColor1"], 1.10),
+			infoColor2 = ColorOption(34, L["infoColor2"], 1.10),
 			infoColorSpacer = {
 				order = 35,
 				type = "description",
 				name = "",
 			},
-			colGuild = {
-				order = 36,
-				name = L["colGuild"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
-			colSameGuild = {
-				order = 37,
-				name = L["colSameGuild"],
-				type = "color",
-				get = function(info) return ColorGetter(info[#info]) end,
-				set = function(info, r,g,b,a) ColorSetter(info[#info], r, g, b, a) end,
-				width = 1.10,
-			},
+			colGuild = ColorOption(36, L["colGuild"], 1.10),
+			colSameGuild = ColorOption(37, L["colSameGuild"], 1.10),
 			resetColors = {
 				order = 38,
 				name = L["resetColors"],
 				type = "execute",
 				func = function()
-					ns.cfg.tipColor = ns.defaults.tipColor
-					ns.cfg.tipBorderColor = ns.defaults.tipBorderColor
-					ns.cfg.colReact1 = ns.defaults.colReact1
-					ns.cfg.colReact2 = ns.defaults.colReact2
-					ns.cfg.colReact3 = ns.defaults.colReact3
-					ns.cfg.colReact4 = ns.defaults.colReact4
-					ns.cfg.colReact5 = ns.defaults.colReact5
-					ns.cfg.colReact6 = ns.defaults.colReact6
-					ns.cfg.colReact7 = ns.defaults.colReact7
-					ns.cfg.infoColor1 = ns.defaults.infoColor1
-					ns.cfg.infoColor2 = ns.defaults.infoColor2
-					ns.cfg.colGuild = ns.defaults.colGuild
-					ns.cfg.colSameGuild = ns.defaults.colSameGuild
+					for _, key in ipairs({
+						"tipColor", "tipBorderColor",
+						"colReact1", "colReact2", "colReact3", "colReact4", "colReact5", "colReact6", "colReact7",
+						"infoColor1", "infoColor2",
+						"colGuild", "colSameGuild",
+					}) do
+						ns.cfg[key] = ns.defaults[key]
+					end
 				end,
 			},
 			header2 = {
@@ -377,12 +293,6 @@ local function CreateConfig()
 					ns.cfg[info[#info]] = value
 					ns.UpdateGameTooltipStatusBarText()
 				end,
-			},
-			spacer5 = {
-				order = 68,
-				type = "description",
-				name = "",
-				width = 0.1,
 			},
 			barFontFlags = {
 				order = 69,
