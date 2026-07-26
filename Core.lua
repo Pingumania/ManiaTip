@@ -2,6 +2,7 @@ local ADDON_NAME, ns = ...
 
 ns.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 ns.Era = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
+-- ns.Classic = not ns.Retail and not ns.Era
 
 local L = ns.L
 
@@ -373,9 +374,12 @@ local function GTT_SetDefaultAnchor(tip, parent)
 
 	tip:SetOwner(parent, "ANCHOR_NONE")
 
-	if ns.Era then
+	-- Optional per-flavor override (only Era defines one today) - checked
+	-- generically so any future flavor module can opt in the same way,
+	-- without this needing to know which specific flavors want it.
+	if ns.FlavorModule.SetCustomAnchorPoint then
 		tip:ClearAllPoints()
-		ns.EraModule.SetCustomAnchorPoint(tip)
+		ns.FlavorModule.SetCustomAnchorPoint(tip)
 	end
 end
 
@@ -457,9 +461,14 @@ local function RegisterCommonHooks()
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	local FlavorModule = ns.Retail and ns.RetailModule or ns.EraModule
-	FlavorModule.Init()
-	ns.GetHealthBarText = FlavorModule.GetHealthBarText
+	if ns.Retail then
+		ns.FlavorModule = ns.RetailModule
+	else
+		ns.FlavorModule = ns.EraModule
+	end
+
+	ns.FlavorModule.Init()
+	ns.GetHealthBarText = ns.FlavorModule.GetHealthBarText
 end
 
 --------------------------------------------------------------------------------------------------------
