@@ -1,3 +1,9 @@
+### v13 - 2026-07-27
+
+* Repair malformed SavedVariables entries on load
+
+*****
+
 ### v12 - 2026-07-26
 
 * Fix tooltip anchor position on Retail
