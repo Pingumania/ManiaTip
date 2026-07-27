@@ -1,98 +1,16 @@
 local _, ns = ...
 
-local L = {}
 local locale = GetLocale()
+local localizations = {}
 
-L["barFontFace"] = "Font"
-L["barFontFlags"] = "Outline"
-L["barFontSize"] = "Size"
-L["barTexture"] = "Texture"
-L["colGuild"] = "Guild Color"
-L["colorSettings"] = "Color Settings"
-L["colReact1"] = "Tapped Color"
-L["colReact2"] = "Hostile Color"
-L["colReact3"] = "Caution Color"
-L["colReact4"] = "Neutral Color"
-L["colReact5"] = "Friendly Color"
-L["colReact6"] = "Companion/Minion Color"
-L["colReact7"] = "Dead Color"
-L["colSameGuild"] = "Same Guild Color"
-L["descInfoColors"] = "Info Colors"
-L["descReactionColors"] = "Reaction Colors"
-L["descTooltipColors"] = "Tooltip Colors"
-L["healthBarSettings"] = "Healthbar Style Settings"
-L["hideFactionText"] = "Hide 'Horde' and 'Alliance' text"
-L["hidePvpText"] = "Hide the PvP text"
-L["hideSubFactionText"] = "Hide the faction of an NPC"
-L["id"] = "ID: "
-L["infoColor1"] = "ID Type Color"
-L["infoColor2"] = "ID Value Color"
-L["none"] = "None"
-L["resetColors"] = "Reset Colors"
-L["showPlayerTitle"] = "Show the title of a player"
-L["showRealm"] = "Show the player realm"
-L["showId"] = "Show ID of spells and items"
-L["showSameRealm"] = "Show the realm of players on your server"
-L["showTarget"] = "Show the current target"
-L["textFontFace"] = "Font"
-L["textFontFlags"] = "Outline"
-L["textFontSize"] = "Size"
-L["thick"] = "Thick"
-L["thin"] = "Thin"
-L["tipBorderColor"] = "Border Color"
-L["tipColor"] = "Background Color"
-L["fontSettings"] = "Tooltip Font Settings"
-L["showBar"] = "Show Healthbar"
-L["showBarValues"] = "Show health values on Healthbar"
-L["tipScale"] = "Tooltip Scale"
-L["colGuild"] = "Guild Color"
-L["colSameGuild"] = "Same Guild Color"
-
-if locale == "ruRU" then
-    L["barFontFace"] = "Шрифт"
-    L["barFontFlags"] = "Контур"
-    L["barFontSize"] = "Размер"
-    L["barTexture"] = "Текстура"
-    L["colGuild"] = "Цвет гильдии"
-    L["colorSettings"] = "Настройки цветов"
-    L["colReact1"] = "Цвет заблокированного"
-    L["colReact2"] = "Цвет враждебного"
-    L["colReact3"] = "Цвет осторожности"
-    L["colReact4"] = "Цвет нейтрального"
-    L["colReact5"] = "Цвет дружественного"
-    L["colReact6"] = "Цвет компаньона/миньона"
-    L["colReact7"] = "Цвет мертвого"
-    L["colSameGuild"] = "Цвет своей гильдии"
-    L["descInfoColors"] = "Цвета информации"
-    L["descReactionColors"] = "Цвета отношений"
-    L["descTooltipColors"] = "Цвета подсказок"
-    L["healthBarSettings"] = "Настройки стиля полосы здоровья"
-    L["hideFactionText"] = "Скрыть текст 'Орда' и 'Альянс'"
-    L["hidePvpText"] = "Скрыть текст PvP"
-    L["hideSubFactionText"] = "Скрыть фракцию NPC"
-    L["id"] = "ID: "
-    L["infoColor1"] = "Цвет типа ID"
-    L["infoColor2"] = "Цвет значения ID"
-    L["none"] = "Нет"
-    L["resetColors"] = "Сбросить цвета"
-    L["showPlayerTitle"] = "Показывать титул игрока"
-    L["showRealm"] = "Показывать игровой мир"
-    L["showId"] = "Показывать ID заклинаний и предметов"
-    L["showSameRealm"] = "Показывать мир игроков вашего сервера"
-    L["showTarget"] = "Показывать текущую цель"
-    L["textFontFace"] = "Шрифт"
-    L["textFontFlags"] = "Контур"
-    L["textFontSize"] = "Размер"
-    L["thick"] = "Толстый"
-    L["thin"] = "Тонкий"
-    L["tipBorderColor"] = "Цвет границы"
-    L["tipColor"] = "Цвет фона"
-    L["fontSettings"] = "Настройки шрифта подсказок"
-    L["showBar"] = "Показывать полосу здоровья"
-    L["showBarValues"] = "Показывать значения здоровья на полосе"
-    L["tipScale"] = "Масштаб подсказки"
-    L["colGuild"] = "Цвет гильдии"
-    L["colSameGuild"] = "Цвет своей гильдии"
-end
-
-ns.L = L
+ns.L = setmetatable({}, {
+	__index = function(_, key)
+		local value = localizations[locale] and localizations[locale][key]
+		if value then return value end
+		return localizations.enUS and localizations.enUS[key] or key
+	end,
+	__call = function(_, forLocale)
+		localizations[forLocale] = localizations[forLocale] or {}
+		return localizations[forLocale]
+	end,
+})
