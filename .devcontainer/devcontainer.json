@@ -1,8 +1,8 @@
 {
     "name": "WoW Addon Dev",
     "image": "forgejo.nethog.xyz/mbr/devcontainer/wow-lua:latest",
-    "workspaceFolder": "/workspace",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "workspaceFolder": "/workspaces/ManiaTip",
+    "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind,consistency=cached",
     "remoteUser": "dev",
     "mounts": [
         "source=claude-config,target=/home/dev/.claude,type=volume"
