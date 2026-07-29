@@ -1,9 +1,5 @@
 local ADDON_NAME, ns = ...
 
-ns.Retail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
-ns.Era = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
--- ns.Classic = not ns.Retail and not ns.Era
-
 local L = ns.L
 
 --------------------------------------------------------------------------------------------------------
@@ -13,7 +9,6 @@ local L = ns.L
 ns.defaults = {
 	showPlayerTitle = true,
 	showRealm = true,
-	showPlayerRealm = true,
 	showSameRealm = true,
 	showTarget = true,
 	showId = true,
@@ -24,25 +19,25 @@ ns.defaults = {
 	hideFactionText = false,
 	hideSubFactionText = false,
 
-	colGuild = { 0.77, 0.12, 0.23, 1 },
-	colSameGuild = { 1, 0.23, 0.56, 1 },
+	guildColor = 'ffc41f3b',
+	sameGuildColor = 'ffff3b8f',
 
-	colReact1 = { 0.5,  0.5,  0.5,  1 },
-	colReact2 = { 1,    0,    0,    1 },
-	colReact3 = { 0.8,  0.3,  0.22, 1 },
-	colReact4 = { 0.9,  0.7,  0,    1 },
-	colReact5 = { 0,    0.6,  0.1,  1 },
-	colReact6 = { 0,    0.75, 0.95, 1 },
-	colReact7 = { 0.35, 0.35, 0.35, 1 },
+	reactionColor1 = 'ff808080',
+	reactionColor2 = 'ffff0000',
+	reactionColor3 = 'ffcc4d38',
+	reactionColor4 = 'ffe6b300',
+	reactionColor5 = 'ff00991a',
+	reactionColor6 = 'ff00bff2',
+	reactionColor7 = 'ff595959',
 
-	tipColor = { 0.090, 0.090, 0.188, 1.000 },
-	tipBorderColor = { 1, 1, 1, 1 },
+	tooltipColor = 'ff171730',
+	tooltipBorderColor = 'ffffffff',
 
 	targetColor = { 1.000, 0.824, 0.000, 1.000 },
 
 	textFontFace = "Arial Narrow",
 	textFontSize = 12,
-	textFontFlags = "",
+	textFontFlags = "NONE",
 
 	barFontFace = "Arial Narrow",
 	barFontSize = 12,
@@ -51,7 +46,6 @@ ns.defaults = {
 
 	showBar = true,
 	showBarValues = true,
-	barsCondenseValues = true,
 
 	classification_minus = "-%s ",
 	classification_trivial = "~%s ",
@@ -61,20 +55,48 @@ ns.defaults = {
 	classification_rare = "%s|r (Rare) ",
 	classification_rareelite = "+%s|r (Rare) ",
 
-	infoColor1 = { 0.2, 0.6, 1, 1 },
-	infoColor2 = { 1,   1,   1, 1 },
+	idLabelColor = 'ff3399ff',
+	idColor = 'ffffffff',
 }
 
 local function IsValidColor(value)
-	return type(value) == "table" and type(value[1]) == "number" and type(value[2]) == "number" and type(value[3]) == "number"
+	return type(value) == "string" and #value == 8 and not value:find("%X")
 end
 
 local function RepairSavedVariables()
 	for key, default in next, ns.defaults do
 		local value = ManiaTipDB[key]
-		if value ~= nil and (type(value) ~= type(default) or (IsValidColor(default) and not IsValidColor(value))) then
+		if value ~= nil and IsValidColor(default) and not IsValidColor(value) then
 			ManiaTipDB[key] = nil
 		end
+	end
+end
+
+local RENAMED_COLOR_KEYS = {
+	{ 'colGuild', 'guildColor' },
+	{ 'colSameGuild', 'sameGuildColor' },
+	{ 'colReact1', 'reactionColor1' },
+	{ 'colReact2', 'reactionColor2' },
+	{ 'colReact3', 'reactionColor3' },
+	{ 'colReact4', 'reactionColor4' },
+	{ 'colReact5', 'reactionColor5' },
+	{ 'colReact6', 'reactionColor6' },
+	{ 'colReact7', 'reactionColor7' },
+	{ 'tipColor', 'tooltipColor' },
+	{ 'tipBorderColor', 'tooltipBorderColor' },
+	{ 'infoColor1', 'idLabelColor' },
+	{ 'infoColor2', 'idColor' },
+}
+
+-- one-time migration: old color keys were {r,g,b,a} tables, new ones are AARRGGBB hex strings
+local function MigrateRenamedColorKeys()
+	for _, info in next, RENAMED_COLOR_KEYS do
+		local oldKey, newKey = info[1], info[2]
+		local oldValue = ManiaTipDB[oldKey]
+		if type(oldValue) == "table" and type(oldValue[1]) == "number" then
+			ManiaTipDB[newKey] = string.format("%02x%02x%02x%02x", (oldValue[4] or 1) * 255, oldValue[1] * 255, oldValue[2] * 255, oldValue[3] * 255)
+		end
+		ManiaTipDB[oldKey] = nil
 	end
 end
 
@@ -124,7 +146,7 @@ ns.EraTooltips = {
 	ItemRefShoppingTooltip2,
 }
 
-if ns.Retail then
+if ns:IsRetail() then
 	ns.tooltips = ns.RetailTooltips
 else
 	ns.tooltips = ns.EraTooltips
@@ -143,10 +165,6 @@ for classID, color in next, ns.CLASS_COLORS do
 	ns.ClassColorMarkup[classID] = color:GenerateHexColorMarkup()
 end
 
-function ns.GenerateHexColor(color)
-	return CreateColor(unpack(color)):GenerateHexColor()
-end
-
 function ns.GenerateHexColorMarkup(color)
 	return CreateColor(unpack(color)):GenerateHexColorMarkup()
 end
@@ -156,7 +174,7 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function GetQuestGreenRange()
-	return ns.Retail and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
+	return ns:IsRetail() and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
 end
 
 function ns.GetDifficultyLevelColor(level)
@@ -192,7 +210,7 @@ local function StatusBar_OnValueChanged(self)
 
 	GameTooltipStatusBar:SetStatusBarColor(ns.activeUnit.color:GetRGBA())
 
-	if ns.cfg.showBarValues then
+	if ns.Config.showBarValues then
 		GameTooltipStatusBar.text:SetText(ns.GetHealthBarText(ns.activeUnit.token))
 	end
 end
@@ -205,7 +223,7 @@ local function OnTooltipCleared(tip)
 	GameTooltipStatusBar.text:SetText("")
 	ns.SetDefaultNineSliceColor(tip)
 
-	if ns.Retail then
+	if ns:IsRetail() then
 		ns.activeUnit = {}
 	end
 end
@@ -232,10 +250,10 @@ function ns.SetDefaultNineSliceColor(tip)
 	end
 
 	if tip.NineSlice then
-		local tipColor = IsValidColor(ns.cfg.tipColor) and ns.cfg.tipColor or ns.defaults.tipColor
-		local tipBorderColor = IsValidColor(ns.cfg.tipBorderColor) and ns.cfg.tipBorderColor or ns.defaults.tipBorderColor
-		tip.NineSlice:SetCenterColor(unpack(tipColor))
-		tip.NineSlice:SetBorderColor(unpack(tipBorderColor))
+		local tooltipColor = CreateColorFromHexString(ns.Config.tooltipColor)
+		local tooltipBorderColor = CreateColorFromHexString(ns.Config.tooltipBorderColor)
+		tip.NineSlice:SetCenterColor(tooltipColor:GetRGBA())
+		tip.NineSlice:SetBorderColor(tooltipBorderColor:GetRGBA())
 	end
 end
 
@@ -282,9 +300,9 @@ function ns.SetNineSliceBorderColor(tip, itemLinkOrID)
 end
 
 function ns.AddIdLine(tip, id)
-	if ns.cfg.showId and id ~= "" then
+	if ns.Config.showId and id ~= "" then
 		tip:AddLine(" ")
-		tip:AddLine(WrapTextInColorCode(L["id"], ns.GenerateHexColor(ns.cfg.infoColor1))..WrapTextInColorCode(id, ns.GenerateHexColor(ns.cfg.infoColor2)))
+		tip:AddLine(WrapTextInColorCode(L["id"], ns.Config.idLabelColor)..WrapTextInColorCode(id, ns.Config.idColor))
 	end
 end
 
@@ -398,9 +416,9 @@ local function SetupGameTooltipStatusBar()
 	GameTooltipStatusBar.bg:SetAllPoints()
 	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
 	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.barFontFace), ns.cfg.barFontSize, ns.cfg.barFontFlags)
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
 	GameTooltipStatusBar:HookScript("OnShow", function(self)
-		if ns.cfg.showBar then
+		if ns.Config.showBar then
 			self:Show()
 		else
 			self:Hide()
@@ -410,21 +428,21 @@ end
 
 function ns.UpdateTooltipScale()
 	for _, tip in next, ns.tooltips do
-		tip:SetScale(ns.cfg.tipScale)
+		tip:SetScale(ns.Config.tipScale)
 	end
 end
 
 function ns.UpdateGameTooltipFont()
-	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.textFontFace) or ns.cfg.textFontFace
-	local size = ns.cfg.textFontSize
-	local flag = ns.cfg.textFontFlags == "NONE" and "" or ns.cfg.textFontFlags
+	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.textFontFace) or ns.Config.textFontFace
+	local size = ns.Config.textFontSize
+	local flag = ns.Config.textFontFlags == "NONE" and "" or ns.Config.textFontFlags
 	GameTooltipText:SetFont(font, size, flag)
 	GameTooltipHeaderText:SetFont(font, size + 2, flag)
 	GameTooltipTextSmall:SetFont(font, size, flag)
 end
 
 function ns.UpdateGameTooltipStatusBarVisibility()
-	if ns.cfg.showBar and ns.cfg.showBarValues then
+	if ns.Config.showBar and ns.Config.showBarValues then
 		GameTooltipStatusBar.text:Show()
 	else
 		GameTooltipStatusBar.text:Hide()
@@ -432,12 +450,12 @@ function ns.UpdateGameTooltipStatusBarVisibility()
 end
 
 function ns.UpdateGameTooltipStatusBarTexture()
-	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.cfg.barTexture))
-	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.cfg.barTexture))
+	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
+	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
 end
 
 function ns.UpdateGameTooltipStatusBarText()
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.cfg.barFontFace), ns.cfg.barFontSize, ns.cfg.barFontFlags)
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -466,7 +484,7 @@ local function RegisterCommonHooks()
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
 	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	if ns.Retail then
+	if ns:IsRetail() then
 		ns.FlavorModule = ns.RetailModule
 	else
 		ns.FlavorModule = ns.EraModule
@@ -480,43 +498,31 @@ end
 -- Lifecycle
 --------------------------------------------------------------------------------------------------------
 
-local mt = CreateFrame("Frame")
-
-function mt:PLAYER_LOGIN()
+function ns:PLAYER_LOGIN()
 	ns.UpdateGameTooltipStatusBarTexture()
 	ns.UpdateGameTooltipStatusBarText()
 	ns.UpdateGameTooltipFont()
 	RefreshPlayerLevel()
 end
 
-mt:SetScript("OnEvent", function(self, event, ...)
-	self[event](self, event, ...)
-end)
-mt.PLAYER_ENTERING_WORLD = RefreshPlayerLevel
-mt.PLAYER_LEVEL_UP = RefreshPlayerLevel
-mt.PLAYER_LEVEL_CHANGED = RefreshPlayerLevel
-mt:RegisterEvent("PLAYER_LOGIN")
-mt:RegisterEvent("PLAYER_LEVEL_UP")
-mt:RegisterEvent("PLAYER_LEVEL_CHANGED")
-mt:RegisterEvent("PLAYER_ENTERING_WORLD")
+ns.PLAYER_ENTERING_WORLD = RefreshPlayerLevel
+ns.PLAYER_LEVEL_UP = RefreshPlayerLevel
+ns.PLAYER_LEVEL_CHANGED = RefreshPlayerLevel
 
-EventUtil.ContinueOnAddOnLoaded(ADDON_NAME, function()
+ns:ContinueOnAddOnLoaded(ADDON_NAME, function()
 	if not ManiaTipDB then
 		ManiaTipDB = {}
 	end
 
+	MigrateRenamedColorKeys()
 	RepairSavedVariables()
-	ns.cfg = setmetatable(ManiaTipDB, { __index = ns.defaults })
+	ns.Config = setmetatable(ManiaTipDB, { __index = ns.defaults })
 
 	SetupGameTooltipStatusBar()
 	RegisterCommonHooks()
 	ns.UpdateTooltipScale()
 end)
 
-EventUtil.ContinueOnAddOnLoaded("Blizzard_Calendar", function()
-	ns.SetDefaultNineSliceColor(CalendarContextMenu)
-end)
-
-EventUtil.ContinueOnAddOnLoaded("Blizzard_PetBattleUI", function()
+ns:ContinueOnAddOnLoaded("Blizzard_PetBattleUI", function()
 	hooksecurefunc("PetBattleUnitTooltip_UpdateForUnit", PetBattleUnitTooltip_UpdateForUnit)
 end)

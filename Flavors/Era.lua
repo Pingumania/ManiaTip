@@ -25,15 +25,18 @@ local function BuildFactionNames()
 	end
 end
 
-local function RemoveUnwantedLines(tip)
+local function RemoveUnwantedLines(tip, unit)
+	-- hideSubFactionText ("Hide the faction of an NPC") matches against every registered faction
+	-- name, which includes Alliance/Horde themselves - only apply it to NPCs, not players
+	local isNPC = not UnitIsPlayer(unit)
 	for i = 2, tip:NumLines() do
 		local line = _G["GameTooltipTextLeft"..i]
 		local text = line:GetText()
-		if ns.cfg.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
+		if ns.Config.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
 			line:SetText("")
-		elseif ns.cfg.hidePvpText and text == PVP_ENABLED then
+		elseif ns.Config.hidePvpText and text == PVP_ENABLED then
 			line:SetText("")
-		elseif ns.cfg.hideSubFactionText and FactionNames[text] then
+		elseif isNPC and ns.Config.hideSubFactionText and FactionNames[text] then
 			line:SetText("")
 		end
 	end
@@ -48,22 +51,8 @@ local function CreateAnchor()
 	anchor:SetSize(100, 20)
 	anchor:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -300, 180)
 	anchor:EnableMouse(true)
-	anchor:SetMovable(true)
-	anchor:RegisterForDrag("LeftButton")
-	anchor:SetScript("OnDragStart", anchor.StartMoving)
-	anchor:SetScript("OnDragStop", function(self)
-		self:StopMovingOrSizing()
-	end)
-
-	anchor:SetBackdrop({
-		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		tile = true,
-		tileEdge = true,
-		tileSize = 8,
-		edgeSize = 8,
-		insets = { left = 1, right = 1, top = 1, bottom = 1 },
-	})
+	ns:SetFrameMoveable(anchor)
+	ns:CreateBackdrop(anchor)
 	anchor:Hide()
 end
 
@@ -94,7 +83,7 @@ local function OnTooltipSetUnit(tip)
 		return
 	end
 
-	RemoveUnwantedLines(tip)
+	RemoveUnwantedLines(tip, unit)
 
 	local _, classID = UnitClass(unit)
 	local fullName = GameTooltipTextLeft1:GetText() or UnitName(unit)

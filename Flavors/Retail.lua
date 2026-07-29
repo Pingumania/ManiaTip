@@ -25,15 +25,18 @@ local function BuildFactionNames()
 	end
 end
 
-local function RemoveUnwantedLines(data)
+local function RemoveUnwantedLines(data, unit)
+	-- hideSubFactionText ("Hide the faction of an NPC") matches against every registered faction
+	-- name, which includes Alliance/Horde themselves - only apply it to NPCs, not players
+	local isNPC = not UnitIsPlayer(unit)
 	for i, lineData in ipairs(data.lines) do
 		local text = lineData.leftText
 		local lineIndex = lineData.lineIndex or i
-		if ns.cfg.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
+		if ns.Config.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
 			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
-		elseif ns.cfg.hidePvpText and text == PVP_ENABLED then
+		elseif ns.Config.hidePvpText and text == PVP_ENABLED then
 			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
-		elseif ns.cfg.hideSubFactionText and FactionNames[text] then
+		elseif isNPC and ns.Config.hideSubFactionText and FactionNames[text] then
 			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
 		end
 	end
@@ -66,7 +69,7 @@ local function OnTooltipSetUnit(tip, data)
 		return
 	end
 
-	RemoveUnwantedLines(data)
+	RemoveUnwantedLines(data, unit)
 
 	local _, classID = UnitClassFromGUID(data.guid)
 	local fullName = data.lines[1] and data.lines[1].leftText or UnitName(unit)
@@ -106,11 +109,11 @@ local function MemberList_OnEnter(self)
 	local classInfo = C_CreatureInfo.GetClassInfo(info.classID)
 
 	local name = info.name
-	if ns.cfg.showRealm and ns.cfg.showSameRealm then
+	if ns.Config.showRealm and ns.Config.showSameRealm then
 		if not strmatch(name, "%a+%-.+") then
 			name = name.."-"..GetRealmName()
 		end
-	elseif not ns.cfg.showRealm then
+	elseif not ns.Config.showRealm then
 		name = gsub(name, "%-.+", "")
 	end
 	GameTooltipTextLeft1:SetFormattedText("%s", ns.ClassColorMarkup[classInfo.classFile]..name)
@@ -161,5 +164,5 @@ function Retail.Init()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, ns.OnTooltipSetToy)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, ns.OnTooltipSetMacro)
 
-	EventUtil.ContinueOnAddOnLoaded("Blizzard_Communities", InitCommunitiesHook)
+	ns:ContinueOnAddOnLoaded("Blizzard_Communities", InitCommunitiesHook)
 end

@@ -5,7 +5,7 @@ local _, ns = ...
 --------------------------------------------------------------------------------------------------------
 
 local function ReactionColor(index)
-	return CreateColor(unpack(ns.cfg["colReact"..index]))
+	return CreateColorFromHexString(ns.Config["reactionColor"..index])
 end
 
 local function GetUnitReactionColor(unit)
@@ -52,12 +52,12 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 	local name, realm = UnitName(unit)
 	local nameString = classMarkup..name
 
-	if ns.cfg.showPlayerTitle then
+	if ns.Config.showPlayerTitle then
 		nameString = classMarkup..(realm and gsub(fullName, "-"..realm, "") or fullName)
 	end
 
-	if ns.cfg.showRealm then
-		if ns.cfg.showSameRealm and not realm then
+	if ns.Config.showRealm then
+		if ns.Config.showSameRealm and not realm then
 			realm = GetRealmName()
 		end
 		nameString = nameString..(realm and "-"..realm or "")
@@ -83,8 +83,8 @@ local function BuildGuildDisplay(unit, isPlayer)
 	end
 
 	local sameGuild = guild == GetGuildInfo("player")
-	local guildColor = ns.GenerateHexColorMarkup(sameGuild and ns.cfg.colSameGuild or ns.cfg.colGuild)
-	return ("%s<%s>|r"):format(guildColor, guild)
+	local guildColorMarkup = '|cff' .. (sameGuild and ns.Config.sameGuildColor or ns.Config.guildColor):sub(3)
+	return ("%s<%s>|r"):format(guildColorMarkup, guild)
 end
 
 -- Returns the formatted "Level NN Classification" line text.
@@ -97,23 +97,23 @@ local function BuildLevelDisplay(unit, isPlayer, classID)
 	local unitInfo
 	if isPlayer then
 		unitInfo = UnitRace(unit).." "
-		if ns.Era then
+		if ns:IsClassicEra() then
 			unitInfo = unitInfo..C_ClassColor.GetClassColor(classID):GenerateHexColorMarkup()..UnitClass(unit).."|r"
 		end
-	elseif ns.Era then
+	elseif ns:IsClassicEra() then
 		unitInfo = (isPet and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)]) or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
 	else
 		unitInfo = ""
 	end
 
 	local levelColor = ns.GetDifficultyLevelColor(level ~= -1 and level or 500)
-	local levelText = (ns.cfg["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
+	local levelText = (ns.Config["classification_"..classification] or "%s? "):format(level == -1 and "??" or level)
 	return ("%s %s|r%s"):format(LEVEL, levelColor..levelText, unitInfo)
 end
 
 -- Returns the formatted "Target: ..." line text, or nil if the unit has no target or the feature is disabled.
 local function BuildTargetDisplay(unit)
-	if not ns.cfg.showTarget then
+	if not ns.Config.showTarget then
 		return nil
 	end
 
@@ -122,9 +122,9 @@ local function BuildTargetDisplay(unit)
 		return nil
 	end
 
-	local text = ns.GenerateHexColorMarkup(ns.cfg.targetColor)..BINDING_HEADER_TARGETING..": "
+	local text = ns.GenerateHexColorMarkup(ns.Config.targetColor)..BINDING_HEADER_TARGETING..": "
 	if UnitIsUnit("player", target) then
-		text = text..ns.COLOR_WARNING..ns.cfg.targetYouText.." |r"
+		text = text..ns.COLOR_WARNING..ns.Config.targetYouText.." |r"
 	end
 
 	if UnitIsPlayer(target) then
@@ -148,7 +148,7 @@ function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 
 	local guildText = BuildGuildDisplay(unit, isPlayer)
 	if guildText then
-		if ns.Era then
+		if ns:IsClassicEra() then
 			tip:AddLine(GameTooltipTextLeft2:GetText(), 1, 1, 1)
 		end
 		GameTooltipTextLeft2:SetFormattedText("%s", guildText)

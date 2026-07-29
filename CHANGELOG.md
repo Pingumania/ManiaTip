@@ -1,3 +1,11 @@
+### v14 - 2026-07-29
+
+* Rebuilt the options panel using Blizzard's native Settings UI
+* Fix "Hide the faction of an NPC" also hiding Alliance/Horde text on players
+* Fix tooltip font outline defaulting to "Custom" instead of showing the actual default
+
+*****
+
 ### v13 - 2026-07-27
 
 * Repair malformed SavedVariables entries on load
