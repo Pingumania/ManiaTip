@@ -177,7 +177,17 @@ local function GetQuestGreenRange()
 	return ns:IsRetail() and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
 end
 
+local function RefreshPlayerLevel()
+	ns.playerLevel = UnitLevel("player")
+	ns.questGreenRange = GetQuestGreenRange()
+end
+
 function ns.GetDifficultyLevelColor(level)
+	-- a tooltip can be built before the events that track this have fired, so don't rely on them
+	if not ns.playerLevel then
+		RefreshPlayerLevel()
+	end
+
 	local diff = level - ns.playerLevel
 	if diff >= 5 then
 		return IMPOSSIBLE_DIFFICULTY_COLOR_CODE
@@ -190,11 +200,6 @@ function ns.GetDifficultyLevelColor(level)
 	else
 		return TRIVIAL_DIFFICULTY_COLOR_CODE
 	end
-end
-
-local function RefreshPlayerLevel()
-	ns.playerLevel = UnitLevel("player")
-	ns.questGreenRange = GetQuestGreenRange()
 end
 
 --------------------------------------------------------------------------------------------------------
