@@ -1,8 +1,9 @@
-### v14 - 2026-07-29
+### v14 - 2026-08-01
 
 * Rebuilt the options panel using Blizzard's native Settings UI
 * Fix "Hide the faction of an NPC" also hiding Alliance/Horde text on players
-* Fix tooltip font outline defaulting to "Custom" instead of showing the actual default
+* Fix unit tooltips erroring on patch 12.0, where the game hides a unit's identity from addons
+* Removed the health values shown on the health bar for Retail. There is no reliable way to show them anymore.
 
 *****
 

@@ -64,13 +64,16 @@ local function CreateConfig()
 	end)
 	ns:RegisterOptionCallback("textFontSize", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontFlags", ns.UpdateGameTooltipFont)
-	ns:RegisterOptionCallback("showBar", ns.UpdateGameTooltipStatusBarVisibility)
 	ns:RegisterOptionCallback("showBar", UpdateBarPreviewControlsEnabled)
-	ns:RegisterOptionCallback("showBarValues", ns.UpdateGameTooltipStatusBarVisibility)
-	ns:RegisterOptionCallback("barFontSize", ns.UpdateGameTooltipStatusBarText)
-	ns:RegisterOptionCallback("barFontFlags", ns.UpdateGameTooltipStatusBarText)
 
-	ns:RegisterSettings("ManiaTipDB", {
+	if not ns:IsRetail() then
+		ns:RegisterOptionCallback("showBar", ns.UpdateGameTooltipStatusBarVisibility)
+		ns:RegisterOptionCallback("showBarValues", ns.UpdateGameTooltipStatusBarVisibility)
+		ns:RegisterOptionCallback("barFontSize", ns.UpdateGameTooltipStatusBarText)
+		ns:RegisterOptionCallback("barFontFlags", ns.UpdateGameTooltipStatusBarText)
+	end
+
+	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
 		{ key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm },
@@ -88,11 +91,17 @@ local function CreateConfig()
 		{ type = "header", title = L["healthBarSettings"] },
 		{ key = "showBar", type = "toggle", title = L["showBar"], default = ns.defaults.showBar },
 		{ type = "custom", title = L["barTexture"], createControl = CreateBarTextureRow },
-		{ key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar" },
-		{ type = "custom", title = L["barFontFace"], createControl = CreateBarFontFaceRow },
-		{ key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" },
-		{ key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS },
-	})
+	}
+
+	-- retail hides a unit's health from addons, so there is nothing to put on the bar there
+	if not ns:IsRetail() then
+		tinsert(settings, { key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar" })
+		tinsert(settings, { type = "custom", title = L["barFontFace"], createControl = CreateBarFontFaceRow })
+		tinsert(settings, { key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" })
+		tinsert(settings, { key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS })
+	end
+
+	ns:RegisterSettings("ManiaTipDB", settings)
 
 	ns:RegisterSubSettings("Colors", {
 		{ type = "header", title = L["descTooltipColors"] },

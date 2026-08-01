@@ -209,13 +209,13 @@ end
 ns.activeUnit = {}
 
 local function StatusBar_OnValueChanged(self)
-	if self ~= GameTooltipStatusBar or not ns.activeUnit.token then
+	if self ~= GameTooltipStatusBar or not ns.activeUnit.color then
 		return
 	end
 
 	GameTooltipStatusBar:SetStatusBarColor(ns.activeUnit.color:GetRGBA())
 
-	if ns.Config.showBarValues then
+	if GameTooltipStatusBar.text and ns.Config.showBarValues and ns.activeUnit.token then
 		GameTooltipStatusBar.text:SetText(ns.GetHealthBarText(ns.activeUnit.token))
 	end
 end
@@ -225,7 +225,10 @@ local function OnTooltipCleared(tip)
 		tip:SetPadding(0, 0)
 	end
 
-	GameTooltipStatusBar.text:SetText("")
+	if GameTooltipStatusBar.text then
+		GameTooltipStatusBar.text:SetText("")
+	end
+
 	ns.SetDefaultNineSliceColor(tip)
 
 	if ns:IsRetail() then
@@ -419,9 +422,14 @@ local function SetupGameTooltipStatusBar()
 	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
 	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
 	GameTooltipStatusBar.bg:SetAllPoints()
-	GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
-	GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
+
+	-- retail hides a unit's health from addons, so there is nothing to write there
+	if not ns:IsRetail() then
+		GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
+		GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
+		ns.UpdateGameTooltipStatusBarText()
+	end
+
 	GameTooltipStatusBar:HookScript("OnShow", function(self)
 		if ns.Config.showBar then
 			self:Show()
@@ -446,7 +454,10 @@ function ns.UpdateGameTooltipFont()
 	GameTooltipTextSmall:SetFont(font, size, flag)
 end
 
+
 function ns.UpdateGameTooltipStatusBarVisibility()
+	if not GameTooltipStatusBar.text then return end
+
 	if ns.Config.showBar and ns.Config.showBarValues then
 		GameTooltipStatusBar.text:Show()
 	else
@@ -454,14 +465,17 @@ function ns.UpdateGameTooltipStatusBarVisibility()
 	end
 end
 
+function ns.UpdateGameTooltipStatusBarText()
+	if not GameTooltipStatusBar.text then return end
+
+	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
+end
+
 function ns.UpdateGameTooltipStatusBarTexture()
 	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
 	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
 end
 
-function ns.UpdateGameTooltipStatusBarText()
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
-end
 
 --------------------------------------------------------------------------------------------------------
 -- Pet battle border coloring
