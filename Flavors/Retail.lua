@@ -25,19 +25,29 @@ local function BuildFactionNames()
 	end
 end
 
+local function PlainText(value)
+	if issecretvalue(value) then
+		return nil
+	end
+
+	return value
+end
+
 local function RemoveUnwantedLines(data, unit)
 	-- hideSubFactionText ("Hide the faction of an NPC") matches against every registered faction
 	-- name, which includes Alliance/Horde themselves - only apply it to NPCs, not players
 	local isNPC = not UnitIsPlayer(unit)
 	for i, lineData in ipairs(data.lines) do
-		local text = lineData.leftText
+		local text = PlainText(lineData.leftText)
 		local lineIndex = lineData.lineIndex or i
-		if ns.Config.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
-			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
-		elseif ns.Config.hidePvpText and text == PVP_ENABLED then
-			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
-		elseif isNPC and ns.Config.hideSubFactionText and FactionNames[text] then
-			_G["GameTooltipTextLeft"..lineIndex]:SetText("")
+		if text then
+			if ns.Config.hideFactionText and (text == FACTION_ALLIANCE or text == FACTION_HORDE) then
+				_G["GameTooltipTextLeft"..lineIndex]:SetText("")
+			elseif ns.Config.hidePvpText and text == PVP_ENABLED then
+				_G["GameTooltipTextLeft"..lineIndex]:SetText("")
+			elseif isNPC and ns.Config.hideSubFactionText and FactionNames[text] then
+				_G["GameTooltipTextLeft"..lineIndex]:SetText("")
+			end
 		end
 	end
 end
@@ -46,14 +56,41 @@ end
 -- Unit tooltip
 --------------------------------------------------------------------------------------------------------
 
+local function FindNameFromData(data)
+	for _, lineData in ipairs(data.lines) do
+		if lineData.type == Enum.TooltipDataLineType.UnitName then
+			return lineData.leftText
+		end
+	end
+end
+
+local levelLineType = Enum.TooltipDataLineType.UnitLevel
+
 local function FindLevelLineFromData(data)
 	for i, lineData in ipairs(data.lines) do
-		if lineData.leftText and strfind(lineData.leftText, "^"..LEVEL.." [%d%?]+") then
+		if levelLineType and lineData.type == levelLineType then
+			return lineData.lineIndex or i
+		end
+
+		local text = PlainText(lineData.leftText)
+		if text and strfind(text, "^"..LEVEL.." [%d%?]+") then
 			return lineData.lineIndex or i
 		end
 	end
 
 	return false
+end
+
+local function GetTooltipUnit(tip)
+	local info = tip.processingInfo
+	local unit = info and info.getterArgs and info.getterArgs[1]
+	if type(unit) == "string" and UnitExists(unit) then
+		return unit
+	end
+
+	if UnitExists("mouseover") then
+		return "mouseover"
+	end
 end
 
 local function OnTooltipSetUnit(tip, data)
@@ -63,7 +100,7 @@ local function OnTooltipSetUnit(tip, data)
 
 	ns.activeUnit = {}
 
-	local unit = UnitTokenFromGUID(data.guid)
+	local unit = GetTooltipUnit(tip)
 	if not unit then
 		tip:Hide()
 		return
@@ -72,7 +109,7 @@ local function OnTooltipSetUnit(tip, data)
 	RemoveUnwantedLines(data, unit)
 
 	local _, classID = UnitClassFromGUID(data.guid)
-	local fullName = data.lines[1] and data.lines[1].leftText or UnitName(unit)
+	local fullName = FindNameFromData(data) or UnitName(unit)
 
 	local _, isPlayer, levelText = ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 

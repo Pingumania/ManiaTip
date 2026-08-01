@@ -4,11 +4,23 @@ local _, ns = ...
 -- Reaction color lookup
 --------------------------------------------------------------------------------------------------------
 
+local function Plain(value, fallback)
+	if issecretvalue(value) then
+		return fallback
+	end
+
+	return value
+end
+
 local function ReactionColor(index)
 	return CreateColorFromHexString(ns.Config["reactionColor"..index])
 end
 
 local function GetUnitReactionColor(unit)
+	if issecretvalue(UnitIsDead(unit)) then
+		return ReactionColor(3)
+	end
+
 	if UnitIsDead(unit) then
 		return ReactionColor(7)
 	end
@@ -53,7 +65,11 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 	local nameString = classMarkup..name
 
 	if ns.Config.showPlayerTitle then
-		nameString = classMarkup..(realm and gsub(fullName, "-"..realm, "") or fullName)
+		local titleName = fullName
+		if realm and not (issecretvalue(fullName) or issecretvalue(realm)) then
+			titleName = gsub(fullName, "-"..realm, "")
+		end
+		nameString = classMarkup..titleName
 	end
 
 	if ns.Config.showRealm then
@@ -77,7 +93,7 @@ local function BuildGuildDisplay(unit, isPlayer)
 		return nil
 	end
 
-	local guild = GetGuildInfo(unit)
+	local guild = Plain(GetGuildInfo(unit))
 	if not guild then
 		return nil
 	end
@@ -89,10 +105,19 @@ end
 
 -- Returns the formatted "Level NN Classification" line text.
 local function BuildLevelDisplay(unit, isPlayer, classID)
-	local isPet = (UnitIsWildBattlePet and UnitIsWildBattlePet(unit)) or (UnitIsBattlePetCompanion and UnitIsBattlePetCompanion(unit))
-	local level = (isPet and UnitBattlePetLevel(unit)) or UnitLevel(unit) or -1
+	local isPet = (UnitIsWildBattlePet and Plain(UnitIsWildBattlePet(unit), false))
+		or (UnitIsBattlePetCompanion and Plain(UnitIsBattlePetCompanion(unit), false))
+
+	local level
+	if isPet then
+		level = UnitBattlePetLevel(unit)
+	else
+		level = UnitLevel(unit)
+	end
+	level = Plain(level) or -1
+
 	-- level -1 is a boss regardless of what classification actually says.
-	local classification = level == -1 and "worldboss" or (UnitClassification(unit) or "")
+	local classification = level == -1 and "worldboss" or (Plain(UnitClassification(unit)) or "")
 
 	local unitInfo
 	if isPlayer then
@@ -123,12 +148,12 @@ local function BuildTargetDisplay(unit)
 	end
 
 	local text = ns.GenerateHexColorMarkup(ns.Config.targetColor)..BINDING_HEADER_TARGETING..": "
-	if UnitIsUnit("player", target) then
+	if Plain(UnitIsUnit("player", target), false) then
 		text = text..ns.COLOR_WARNING..ns.Config.targetYouText.." |r"
 	end
 
-	if UnitIsPlayer(target) then
-		local _, targetClassID = UnitClass(target)
+	local targetClassID = select(2, UnitClass(target))
+	if Plain(UnitIsPlayer(target), false) and targetClassID then
 		text = text..C_ClassColor.GetClassColor(targetClassID):GenerateHexColorMarkup()
 	else
 		text = text..GetUnitReactionColor(target):GenerateHexColorMarkup()
@@ -139,7 +164,7 @@ end
 
 -- Returns: color (for the health bar hook), isPlayer, formatted level line text.
 function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
-	local isPlayer = UnitIsPlayer(unit)
+	local isPlayer = Plain(UnitIsPlayer(unit), classID ~= nil)
 
 	local color, nameString = BuildNameDisplay(unit, isPlayer, classID, fullName)
 	tip.NineSlice:SetBorderColor(color:GetRGBA())
