@@ -408,7 +408,7 @@ local function GTT_SetDefaultAnchor(tip, parent)
 
 	tip:SetOwner(parent, "ANCHOR_NONE")
 
-	if ns.FlavorModule.SetCustomAnchorPoint then
+	if ns.FlavorModule and ns.FlavorModule.SetCustomAnchorPoint then
 		tip:ClearAllPoints()
 		ns.FlavorModule.SetCustomAnchorPoint(tip)
 	end
@@ -493,6 +493,15 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function RegisterCommonHooks()
+	-- the flavor has to be in place before any hook below can fire
+	if ns:IsRetail() then
+		ns.FlavorModule = ns.RetailModule
+	else
+		ns.FlavorModule = ns.EraModule
+	end
+
+	ns.GetHealthBarText = ns.FlavorModule.GetHealthBarText
+
 	for _, tip in next, ns.tooltips do
 		ns.SetDefaultNineSliceColor(tip)
 	end
@@ -501,16 +510,10 @@ local function RegisterCommonHooks()
 	ItemRefTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
+
 	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	if ns:IsRetail() then
-		ns.FlavorModule = ns.RetailModule
-	else
-		ns.FlavorModule = ns.EraModule
-	end
-
 	ns.FlavorModule.Init()
-	ns.GetHealthBarText = ns.FlavorModule.GetHealthBarText
 end
 
 --------------------------------------------------------------------------------------------------------
