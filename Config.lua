@@ -17,41 +17,14 @@ local function CreateFontFaceRow(rowFrame)
 	end)
 end
 
--- barTexture/barFontFace are custom rows (preview dropdowns), so they can't use the native
--- requires = "showBar" mechanism (that only works between native toggle/slider/menu/color rows) -
--- track them here and enable/disable manually, initializing each to the current state as it's created
--- (custom rows are only actually built once scrolled into view, so this may run well after registration)
-local barPreviewControls = {}
-local function ApplyBarPreviewControlState(control)
-	if ns.Config.showBar then
-		control.widget:Enable()
-		control.text:SetTextColor(NORMAL_FONT_COLOR:GetRGB())
-	else
-		control.widget:Disable()
-		control.text:SetTextColor(GRAY_FONT_COLOR:GetRGB())
-	end
-end
-
-local function UpdateBarPreviewControlsEnabled()
-	for _, control in next, barPreviewControls do
-		ApplyBarPreviewControlState(control)
-	end
-end
-
 local function CreateBarPreviewRow(mediaType, key, updateFn)
 	return function(rowFrame)
-		local dropdown = ns:CreateMediaDropdown(rowFrame, mediaType, function()
+		return ns:CreateMediaDropdown(rowFrame, mediaType, function()
 			return ns.Config[key]
 		end, function(value)
 			ns.Config[key] = value
 			updateFn()
 		end)
-
-		local control = { widget = dropdown, text = rowFrame.Text }
-		table.insert(barPreviewControls, control)
-		ApplyBarPreviewControlState(control)
-
-		return dropdown
 	end
 end
 
@@ -64,7 +37,6 @@ local function CreateConfig()
 	end)
 	ns:RegisterOptionCallback("textFontSize", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontFlags", ns.UpdateGameTooltipFont)
-	ns:RegisterOptionCallback("showBar", UpdateBarPreviewControlsEnabled)
 
 	if not ns:IsRetail() then
 		ns:RegisterOptionCallback("showBar", ns.UpdateGameTooltipStatusBarVisibility)
@@ -90,13 +62,13 @@ local function CreateConfig()
 
 		{ type = "header", title = L["healthBarSettings"] },
 		{ key = "showBar", type = "toggle", title = L["showBar"], default = ns.defaults.showBar },
-		{ type = "custom", title = L["barTexture"], createControl = CreateBarTextureRow },
+		{ type = "custom", title = L["barTexture"], requires = "showBar", createControl = CreateBarTextureRow },
 	}
 
 	-- retail hides a unit's health from addons, so there is nothing to put on the bar there
 	if not ns:IsRetail() then
 		tinsert(settings, { key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar" })
-		tinsert(settings, { type = "custom", title = L["barFontFace"], createControl = CreateBarFontFaceRow })
+		tinsert(settings, { type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow })
 		tinsert(settings, { key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" })
 		tinsert(settings, { key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS })
 	end
