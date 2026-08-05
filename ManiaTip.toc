@@ -16,7 +16,7 @@ Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua
 Libs\Huddle\Embed.xml
 Locales\enUS.lua
 Locales\ruRU.lua
-Core.lua
+Addon.lua
 UnitInfo.lua
 Flavors\Retail.lua [AllowLoadGameType mainline]
 Flavors\Era.lua [AllowLoadGameType vanilla]
