@@ -1,3 +1,7 @@
+### v15 - 2026-09-19
+
+* Add initial support for Forever
+
 ### v14 - 2026-08-01
 
 * Rebuilt the options panel using Blizzard's native Settings UI

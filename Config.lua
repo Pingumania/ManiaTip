@@ -48,7 +48,6 @@ local function CreateConfig()
 	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
-		{ key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm },
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
 		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },
 		{ key = "hideSubFactionText", type = "toggle", title = L["hideSubFactionText"], default = ns.defaults.hideSubFactionText },
@@ -71,6 +70,10 @@ local function CreateConfig()
 		tinsert(settings, { type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow })
 		tinsert(settings, { key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" })
 		tinsert(settings, { key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS })
+	end
+
+	if not ns:IsForever() then
+		tinsert(settings, { key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm })
 	end
 
 	ns:RegisterSettings("ManiaTipDB", settings)

@@ -72,7 +72,7 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 		nameString = classMarkup..titleName
 	end
 
-	if ns.Config.showRealm then
+	if ns.Config.showRealm and not ns:IsForever() then
 		if ns.Config.showSameRealm and not realm then
 			realm = GetRealmName()
 		end
