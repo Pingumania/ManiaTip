@@ -146,7 +146,7 @@ ns.EraTooltips = {
 	ItemRefShoppingTooltip2,
 }
 
-if ns:IsRetail() then
+if ns:IsMainline() then
 	ns.tooltips = ns.RetailTooltips
 else
 	ns.tooltips = ns.EraTooltips
@@ -174,7 +174,7 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function GetQuestGreenRange()
-	return ns:IsRetail() and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
+	return ns:IsMainline() and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
 end
 
 local function RefreshPlayerLevel()
@@ -231,7 +231,7 @@ local function OnTooltipCleared(tip)
 
 	ns.SetDefaultNineSliceColor(tip)
 
-	if ns:IsRetail() then
+	if ns:IsMainline() then
 		ns.activeUnit = {}
 	end
 end
@@ -424,7 +424,7 @@ local function SetupGameTooltipStatusBar()
 	GameTooltipStatusBar.bg:SetAllPoints()
 
 	-- retail hides a unit's health from addons, so there is nothing to write there
-	if not ns:IsRetail() then
+	if not ns:IsMainline() then
 		GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
 		GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
 		ns.UpdateGameTooltipStatusBarText()
@@ -494,11 +494,7 @@ end
 
 local function RegisterCommonHooks()
 	-- the flavor has to be in place before any hook below can fire
-	if ns:IsRetail() then
-		ns.FlavorModule = ns.RetailModule
-	else
-		ns.FlavorModule = ns.EraModule
-	end
+	ns.FlavorModule = ns.RetailModule or ns.EraModule
 
 	ns.GetHealthBarText = ns.FlavorModule.GetHealthBarText
 

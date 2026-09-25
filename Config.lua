@@ -38,7 +38,7 @@ local function CreateConfig()
 	ns:RegisterOptionCallback("textFontSize", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontFlags", ns.UpdateGameTooltipFont)
 
-	if not ns:IsRetail() then
+	if not ns:IsMainline() then
 		ns:RegisterOptionCallback("showBar", ns.UpdateGameTooltipStatusBarVisibility)
 		ns:RegisterOptionCallback("showBarValues", ns.UpdateGameTooltipStatusBarVisibility)
 		ns:RegisterOptionCallback("barFontSize", ns.UpdateGameTooltipStatusBarText)
@@ -65,7 +65,7 @@ local function CreateConfig()
 	}
 
 	-- retail hides a unit's health from addons, so there is nothing to put on the bar there
-	if not ns:IsRetail() then
+	if not ns:IsMainline() then
 		tinsert(settings, { key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar" })
 		tinsert(settings, { type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow })
 		tinsert(settings, { key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" })
