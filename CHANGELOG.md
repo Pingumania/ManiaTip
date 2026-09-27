@@ -1,3 +1,10 @@
+### v16 - 2026-09-25
+
+* Show the class text in white by default
+* Add option to show the class text in class color
+
+*****
+
 ### v15 - 2026-09-19
 
 * Add initial support for Forever
