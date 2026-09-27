@@ -47,6 +47,7 @@ local function CreateConfig()
 
 	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
+		{ key = "classColorText", type = "toggle", title = L["classColorText"], default = ns.defaults.classColorText },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
 		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },

@@ -112,8 +112,10 @@ local function OnTooltipSetUnit(tip, data)
 		if isPlayer then
 			local specLine = _G["GameTooltipTextLeft"..(levelLine + 1)]
 			local text = specLine and specLine:GetText()
-			if text then
+			if text and ns.Config.classColorText then
 				specLine:SetFormattedText("%s%s|r", C_ClassColor.GetClassColor(classID):GenerateHexColorMarkup(), text)
+			elseif text then
+				specLine:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
 			end
 		end
 	end
@@ -151,10 +153,14 @@ local function MemberList_OnEnter(self)
 	if raceInfo and info.level then
 		local levelColor = ns.GetDifficultyLevelColor(info.level ~= -1 and info.level or 500)
 		local plainText = COMMUNITY_MEMBER_CHARACTER_INFO_FORMAT:format(info.level, raceInfo.raceName, classInfo.className)
+		local classText = classInfo.className
+		if ns.Config.classColorText then
+			classText = ns.ClassColorMarkup[classInfo.classFile]..classText.."|r"
+		end
 		for i = 2, GameTooltip:NumLines() do
 			local line = _G["GameTooltipTextLeft"..i]
 			if line:GetText() == plainText then
-				line:SetFormattedText("%s %s %s", levelColor..info.level.."|r", raceInfo.raceName, ns.ClassColorMarkup[classInfo.classFile]..classInfo.className)
+				line:SetFormattedText("%s %s %s", levelColor..info.level.."|r", raceInfo.raceName, classText)
 				break
 			end
 		end

@@ -8,6 +8,7 @@ local L = ns.L
 
 ns.defaults = {
 	showPlayerTitle = true,
+	classColorText = false,
 	showRealm = true,
 	showSameRealm = true,
 	showTarget = true,
