@@ -47,6 +47,7 @@ local function CreateConfig()
 
 	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
+		{ key = "transliterateNames", type = "toggle", title = L["transliterateNames"], default = ns.defaults.transliterateNames, hidden = not (C_Intl and C_Intl.Transliterate) },
 		{ key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm, hidden = ns:IsForever() },
 		{ key = "classColorText", type = "toggle", title = L["classColorText"], default = ns.defaults.classColorText },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },

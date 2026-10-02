@@ -12,6 +12,25 @@ local function Plain(value, fallback)
 	return value
 end
 
+local Transliterate = C_Intl and C_Intl.Transliterate
+local latinNames = {}
+
+local function Latin(text)
+	if not (Transliterate and ns.Config.transliterateNames) then
+		return text
+	end
+
+	if issecretvalue(text) then
+		return Transliterate(text, "Any-Latin; Latin-ASCII")
+	end
+
+	if not latinNames[text] then
+		latinNames[text] = Transliterate(text, "Any-Latin; Latin-ASCII")
+	end
+
+	return latinNames[text]
+end
+
 local function ReactionColor(index)
 	return CreateColorFromHexString(ns.Config["reactionColor"..index])
 end
@@ -62,21 +81,21 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 	local color = C_ClassColor.GetClassColor(classID)
 	local classMarkup = color:GenerateHexColorMarkup()
 	local name, realm = UnitName(unit)
-	local nameString = classMarkup..name
+	local nameString = classMarkup..Latin(name)
 
 	if ns.Config.showPlayerTitle then
 		local titleName = fullName
 		if realm and not (issecretvalue(fullName) or issecretvalue(realm)) then
 			titleName = gsub(fullName, "-"..realm, "")
 		end
-		nameString = classMarkup..titleName
+		nameString = classMarkup..Latin(titleName)
 	end
 
 	if ns.Config.showRealm and not ns:IsForever() then
 		if ns.Config.showSameRealm and not realm then
 			realm = GetRealmName()
 		end
-		nameString = nameString..(realm and "-"..realm or "")
+		nameString = nameString..(realm and "-"..Latin(realm) or "")
 	end
 
 	local status = (not UnitIsConnected(unit) and " <DC>") or (UnitIsAFK(unit) and " <AFK>") or (UnitIsDND(unit) and " <DND>")
@@ -100,7 +119,7 @@ local function BuildGuildDisplay(unit, isPlayer)
 
 	local sameGuild = guild == GetGuildInfo("player")
 	local guildColorMarkup = '|cff' .. (sameGuild and ns.Config.sameGuildColor or ns.Config.guildColor):sub(3)
-	return ("%s<%s>|r"):format(guildColorMarkup, guild)
+	return ("%s<%s>|r"):format(guildColorMarkup, Latin(guild))
 end
 
 -- Returns the formatted "Level NN Classification" line text.
@@ -156,12 +175,10 @@ local function BuildTargetDisplay(unit)
 
 	local targetClassID = select(2, UnitClass(target))
 	if Plain(UnitIsPlayer(target), false) and targetClassID then
-		text = text..C_ClassColor.GetClassColor(targetClassID):GenerateHexColorMarkup()
-	else
-		text = text..GetUnitReactionColor(target):GenerateHexColorMarkup()
+		return text..C_ClassColor.GetClassColor(targetClassID):GenerateHexColorMarkup()..Latin(UnitName(target))
 	end
 
-	return text..UnitName(target)
+	return text..GetUnitReactionColor(target):GenerateHexColorMarkup()..UnitName(target)
 end
 
 -- Returns: color (for the health bar hook), isPlayer, formatted level line text.
