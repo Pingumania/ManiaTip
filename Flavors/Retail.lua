@@ -176,13 +176,18 @@ end
 
 local function InitCommunitiesHook()
 	local hooked = {}
-	ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, function(_, frame)
+	local function HookMember(frame)
 		if not hooked[frame] then
 			frame:HookScript("OnEnter", MemberList_OnEnter)
 			frame:HookScript("OnLeave", MemberList_OnLeave)
 			hooked[frame] = true
 		end
-	end, nil, true)
+	end
+
+	CommunitiesFrame.MemberList.ScrollBox:ForEachFrame(HookMember)
+	ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, function(_, frame)
+		HookMember(frame)
+	end)
 end
 
 --------------------------------------------------------------------------------------------------------
