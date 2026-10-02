@@ -175,7 +175,11 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function GetQuestGreenRange()
-	return ns:IsMainline() and UnitQuestTrivialLevelRange("player") or _G.GetQuestGreenRange()
+	if UnitQuestTrivialLevelRange then
+		return UnitQuestTrivialLevelRange("player")
+	end
+
+	return _G.GetQuestGreenRange()
 end
 
 local function RefreshPlayerLevel()
@@ -425,7 +429,7 @@ local function SetupGameTooltipStatusBar()
 	GameTooltipStatusBar.bg:SetAllPoints()
 
 	-- retail hides a unit's health from addons, so there is nothing to write there
-	if not ns:IsMainline() then
+	if ns.EraModule then
 		GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
 		GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
 		ns.UpdateGameTooltipStatusBarText()

@@ -1,3 +1,9 @@
+### v17 - 2026-10-02
+
+* Fix errors on new Forever build
+
+*****
+
 ### v16 - 2026-09-25
 
 * Show the class text in white by default
