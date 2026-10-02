@@ -47,6 +47,7 @@ local function CreateConfig()
 
 	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
+		{ key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm, hidden = ns:IsForever() },
 		{ key = "classColorText", type = "toggle", title = L["classColorText"], default = ns.defaults.classColorText },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
@@ -63,19 +64,11 @@ local function CreateConfig()
 		{ type = "header", title = L["healthBarSettings"] },
 		{ key = "showBar", type = "toggle", title = L["showBar"], default = ns.defaults.showBar },
 		{ type = "custom", title = L["barTexture"], requires = "showBar", createControl = CreateBarTextureRow },
+		{ key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar", hidden = not ns.EraModule },
+		{ type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow, hidden = not ns.EraModule },
+		{ key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar", hidden = not ns.EraModule },
+		{ key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS, hidden = not ns.EraModule },
 	}
-
-	-- retail hides a unit's health from addons, so there is nothing to put on the bar there
-	if ns.EraModule then
-		tinsert(settings, { key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar" })
-		tinsert(settings, { type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow })
-		tinsert(settings, { key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar" })
-		tinsert(settings, { key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS })
-	end
-
-	if not ns:IsForever() then
-		tinsert(settings, { key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm })
-	end
 
 	ns:RegisterSettings("ManiaTipDB", settings)
 
