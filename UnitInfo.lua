@@ -69,6 +69,61 @@ local function GetUnitReactionColor(unit)
 end
 
 --------------------------------------------------------------------------------------------------------
+-- Status tags
+--------------------------------------------------------------------------------------------------------
+
+local STATUS_SPACER = "|TInterface\\Common\\spacer:1:%d|t"
+local statusTags, statusSpacer
+
+local function HideStatusTags()
+	for _, tag in ipairs(statusTags) do
+		tag:SetAlpha(0)
+	end
+end
+
+local function CreateStatusTags()
+	statusTags = {}
+
+	local width = 0
+	local tag
+
+	for i, text in ipairs({ "<DC>", "<AFK>", "<DND>" }) do
+		tag = GameTooltip:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
+		tag:SetText(text)
+		tag:SetTextColor(WHITE_FONT_COLOR:GetRGB())
+		tag:SetAlpha(0)
+		statusTags[i] = tag
+		width = math.max(width, tag:GetUnboundedStringWidth())
+	end
+
+	statusSpacer = STATUS_SPACER:format(width)
+
+	local probe = GameTooltip:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
+	probe:Hide()
+	probe:SetText(statusSpacer)
+	width = probe:GetUnboundedStringWidth()
+	statusSpacer = " "..statusSpacer
+
+	for _, statusTag in ipairs(statusTags) do
+		statusTag:SetPoint("LEFT", GameTooltipTextLeft1, "RIGHT", -width, 0)
+	end
+
+	GameTooltip:HookScript("OnTooltipCleared", HideStatusTags)
+end
+
+local function ShowStatusTags(unit)
+	if not statusTags then
+		CreateStatusTags()
+	end
+
+	statusTags[1]:SetAlphaFromBoolean(UnitIsConnected(unit), 0, 1)
+	statusTags[2]:SetAlphaFromBoolean(UnitIsAFK(unit), 1, 0)
+	statusTags[3]:SetAlphaFromBoolean(UnitIsDND(unit), 1, 0)
+
+	return statusSpacer
+end
+
+--------------------------------------------------------------------------------------------------------
 -- Display builders
 --------------------------------------------------------------------------------------------------------
 
@@ -98,12 +153,7 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 		nameString = nameString..(realm and "-"..Latin(realm) or "")
 	end
 
-	local status = (not UnitIsConnected(unit) and " <DC>") or (UnitIsAFK(unit) and " <AFK>") or (UnitIsDND(unit) and " <DND>")
-	if status then
-		nameString = nameString..ns.COLOR_WHITE..status
-	end
-
-	return color, nameString
+	return color, nameString..ShowStatusTags(unit)
 end
 
 -- Returns the formatted guild line text, or nil if the unit has none / is not a player.
