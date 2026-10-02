@@ -56,23 +56,6 @@ local function FindNameFromData(data)
 	end
 end
 
-local levelLineType = Enum.TooltipDataLineType.UnitLevel
-
-local function FindLevelLineFromData(data)
-	for i, lineData in ipairs(data.lines) do
-		if levelLineType and lineData.type == levelLineType then
-			return lineData.lineIndex or i
-		end
-
-		local text = PlainText(lineData.leftText)
-		if text and strfind(text, "^"..LEVEL.." [%d%?]+") then
-			return lineData.lineIndex or i
-		end
-	end
-
-	return false
-end
-
 local function GetTooltipUnit(tip)
 	local info = tip.processingInfo
 	local unit = info and info.getterArgs and info.getterArgs[1]
@@ -105,18 +88,19 @@ local function OnTooltipSetUnit(tip, data)
 
 	local _, isPlayer, levelText = ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 
-	local levelLine = FindLevelLineFromData(data)
-	if levelLine then
+	-- Level lines report type None instead of UnitLevel, so NPC level lines
+	-- can't be told apart from subtitles while text is secret.
+	if isPlayer then
+		local levelLine = GetGuildInfo(unit) and 3 or 2
 		_G["GameTooltipTextLeft"..levelLine]:SetText(levelText)
 
-		if isPlayer then
-			local specLine = _G["GameTooltipTextLeft"..(levelLine + 1)]
-			local text = specLine and specLine:GetText()
-			if text and ns.Config.classColorText then
-				specLine:SetFormattedText("%s%s|r", C_ClassColor.GetClassColor(classID):GenerateHexColorMarkup(), text)
-			elseif text then
-				specLine:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
-			end
+		local specLine = _G["GameTooltipTextLeft"..(levelLine + 1)]
+		local text = specLine and specLine:GetText()
+		local hasText = issecretvalue(text) or text
+		if hasText and ns.Config.classColorText then
+			specLine:SetFormattedText("%s%s|r", C_ClassColor.GetClassColor(classID):GenerateHexColorMarkup(), text)
+		elseif hasText then
+			specLine:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
 		end
 	end
 
