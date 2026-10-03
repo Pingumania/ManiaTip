@@ -3,6 +3,7 @@
 ## Title: ManiaTip
 ## Notes: Tooltip Enhancement Addon
 ## Category: User Interface
+## IconAtlas: UI-HUD-ActionBar-Frame
 ## Author: Pingumania
 ## Version: @project-version@
 
