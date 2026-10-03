@@ -29,7 +29,6 @@ local function CreateBarPreviewRow(mediaType, key, updateFn)
 end
 
 local CreateBarTextureRow = CreateBarPreviewRow("statusbar", "barTexture", ns.UpdateGameTooltipStatusBarTexture)
-local CreateBarFontFaceRow = CreateBarPreviewRow("font", "barFontFace", ns.UpdateGameTooltipStatusBarText)
 
 local function CreateConfig()
 	ns:RegisterOptionCallback("tipScale", function()
@@ -38,12 +37,6 @@ local function CreateConfig()
 	ns:RegisterOptionCallback("textFontSize", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontFlags", ns.UpdateGameTooltipFont)
 
-	if ns.EraModule then
-		ns:RegisterOptionCallback("showBar", ns.UpdateGameTooltipStatusBarVisibility)
-		ns:RegisterOptionCallback("showBarValues", ns.UpdateGameTooltipStatusBarVisibility)
-		ns:RegisterOptionCallback("barFontSize", ns.UpdateGameTooltipStatusBarText)
-		ns:RegisterOptionCallback("barFontFlags", ns.UpdateGameTooltipStatusBarText)
-	end
 
 	local settings = {
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
@@ -54,7 +47,7 @@ local function CreateConfig()
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
 		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },
 		{ key = "hideSubFactionText", type = "toggle", title = L["hideSubFactionText"], default = ns.defaults.hideSubFactionText },
-		{ key = "hideRightClickText", type = "toggle", title = L["hideRightClickText"], default = ns.defaults.hideRightClickText, hidden = not ns.RetailModule },
+		{ key = "hideRightClickText", type = "toggle", title = L["hideRightClickText"], default = ns.defaults.hideRightClickText },
 		{ key = "showId", type = "toggle", title = L["showId"], default = ns.defaults.showId },
 		{ key = "tipScale", type = "slider", title = L["tipScale"], default = ns.defaults.tipScale, minValue = 0.5, maxValue = 2, valueStep = 0.05 },
 
@@ -66,10 +59,6 @@ local function CreateConfig()
 		{ type = "header", title = L["healthBarSettings"] },
 		{ key = "showBar", type = "toggle", title = L["showBar"], default = ns.defaults.showBar },
 		{ type = "custom", title = L["barTexture"], requires = "showBar", createControl = CreateBarTextureRow },
-		{ key = "showBarValues", type = "toggle", title = L["showBarValues"], default = ns.defaults.showBarValues, requires = "showBar", hidden = not ns.EraModule },
-		{ type = "custom", title = L["barFontFace"], requires = "showBar", createControl = CreateBarFontFaceRow, hidden = not ns.EraModule },
-		{ key = "barFontSize", type = "slider", title = L["barFontSize"], default = ns.defaults.barFontSize, minValue = 1, maxValue = 26, valueStep = 1, requires = "showBar", hidden = not ns.EraModule },
-		{ key = "barFontFlags", type = "menu", title = L["barFontFlags"], default = ns.defaults.barFontFlags, requires = "showBar", options = FLAG_OPTIONS, hidden = not ns.EraModule },
 	}
 
 	ns:RegisterSettings("ManiaTipDB", settings)

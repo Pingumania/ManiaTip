@@ -1,9 +1,6 @@
 local _, ns = ...
 local L = ns.L("enUS")
 
-L["barFontFace"] = "Font"
-L["barFontFlags"] = "Outline"
-L["barFontSize"] = "Size"
 L["barTexture"] = "Texture"
 L["classColorText"] = "Show the class in class color"
 L["colGuild"] = "Guild Color"
@@ -44,5 +41,4 @@ L["tipBorderColor"] = "Border Color"
 L["tipColor"] = "Background Color"
 L["fontSettings"] = "Tooltip Font"
 L["showBar"] = "Show Healthbar"
-L["showBarValues"] = "Show health values on Healthbar"
 L["tipScale"] = "Tooltip Scale"

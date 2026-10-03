@@ -1,9 +1,6 @@
 local _, ns = ...
 local L = ns.L("ruRU")
 
-L["barFontFace"] = "Шрифт"
-L["barFontFlags"] = "Контур"
-L["barFontSize"] = "Размер"
 L["barTexture"] = "Текстура"
 L["classColorText"] = "Показывать класс цветом класса"
 L["colGuild"] = "Цвет гильдии"
@@ -44,7 +41,6 @@ L["tipBorderColor"] = "Цвет границы"
 L["tipColor"] = "Цвет фона"
 L["fontSettings"] = "Шрифт подсказок"
 L["showBar"] = "Показывать полосу здоровья"
-L["showBarValues"] = "Показывать значения здоровья на полосе"
 L["tipScale"] = "Масштаб подсказки"
 
 --@localization(locale="ruRU", format="lua_additive_table", handle-unlocalized="ignore")@

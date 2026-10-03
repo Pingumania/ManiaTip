@@ -190,13 +190,6 @@ local function BuildLevelDisplay(unit, isPlayer, classID)
 	local unitInfo
 	if isPlayer then
 		unitInfo = UnitRace(unit).." "
-		if ns:IsClassicEra() and ns.Config.classColorText then
-			unitInfo = unitInfo..C_ClassColor.GetClassColor(classID):GenerateHexColorMarkup()..UnitClass(unit).."|r"
-		elseif ns:IsClassicEra() then
-			unitInfo = unitInfo..UnitClass(unit)
-		end
-	elseif ns:IsClassicEra() then
-		unitInfo = (isPet and _G["BATTLE_PET_NAME_"..UnitBattlePetType(unit)]) or UnitCreatureFamily(unit) or UnitCreatureType(unit) or ""
 	else
 		unitInfo = ""
 	end
@@ -241,9 +234,6 @@ function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 
 	local guildText = BuildGuildDisplay(unit, isPlayer)
 	if guildText then
-		if ns:IsClassicEra() then
-			tip:AddLine(GameTooltipTextLeft2:GetText(), 1, 1, 1)
-		end
 		GameTooltipTextLeft2:SetFormattedText("%s", guildText)
 	end
 
@@ -252,7 +242,6 @@ function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
 		ns.AddEmptyTrailingLine(tip):SetText(targetText)
 	end
 
-	ns.activeUnit.token = unit
 	ns.activeUnit.color = color
 
 	return color, isPlayer, BuildLevelDisplay(unit, isPlayer, classID)

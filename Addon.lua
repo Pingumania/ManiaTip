@@ -42,13 +42,9 @@ ns.defaults = {
 	textFontSize = 12,
 	textFontFlags = "NONE",
 
-	barFontFace = "Arial Narrow",
-	barFontSize = 12,
-	barFontFlags = "OUTLINE",
 	barTexture = "Blizzard",
 
 	showBar = true,
-	showBarValues = true,
 
 	classification_minus = "-%s ",
 	classification_trivial = "~%s ",
@@ -107,7 +103,7 @@ end
 -- Tooltip lists
 --------------------------------------------------------------------------------------------------------
 
-ns.RetailTooltips = {
+ns.tooltips = {
 	GameTooltip,
 	ShoppingTooltip1,
 	ShoppingTooltip2,
@@ -139,21 +135,6 @@ ns.RetailTooltips = {
 	AutoCompleteBox,
 	FloatingBattlePetTooltip,
 }
-
-ns.EraTooltips = {
-	GameTooltip,
-	ShoppingTooltip1,
-	ShoppingTooltip2,
-	ItemRefTooltip,
-	ItemRefShoppingTooltip1,
-	ItemRefShoppingTooltip2,
-}
-
-if ns:IsMainline() then
-	ns.tooltips = ns.RetailTooltips
-else
-	ns.tooltips = ns.EraTooltips
-end
 
 --------------------------------------------------------------------------------------------------------
 -- Shared colors
@@ -221,10 +202,6 @@ local function StatusBar_OnValueChanged(self)
 	end
 
 	GameTooltipStatusBar:SetStatusBarColor(ns.activeUnit.color:GetRGBA())
-
-	if GameTooltipStatusBar.text and ns.Config.showBarValues and ns.activeUnit.token then
-		GameTooltipStatusBar.text:SetText(ns.GetHealthBarText(ns.activeUnit.token))
-	end
 end
 
 local function OnTooltipCleared(tip)
@@ -232,15 +209,9 @@ local function OnTooltipCleared(tip)
 		tip:SetPadding(0, 0)
 	end
 
-	if GameTooltipStatusBar.text then
-		GameTooltipStatusBar.text:SetText("")
-	end
-
 	ns.SetDefaultNineSliceColor(tip)
 
-	if ns:IsMainline() then
-		ns.activeUnit = {}
-	end
+	ns.activeUnit = {}
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -414,11 +385,6 @@ local function GTT_SetDefaultAnchor(tip, parent)
 	end
 
 	tip:SetOwner(parent, "ANCHOR_NONE")
-
-	if ns.FlavorModule and ns.FlavorModule.SetCustomAnchorPoint then
-		tip:ClearAllPoints()
-		ns.FlavorModule.SetCustomAnchorPoint(tip)
-	end
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -429,13 +395,6 @@ local function SetupGameTooltipStatusBar()
 	GameTooltipStatusBar.bg = GameTooltipStatusBar:CreateTexture(nil, "BACKGROUND")
 	GameTooltipStatusBar.bg:SetVertexColor(0.3, 0.3, 0.3, 0.6)
 	GameTooltipStatusBar.bg:SetAllPoints()
-
-	-- retail hides a unit's health from addons, so there is nothing to write there
-	if ns.EraModule then
-		GameTooltipStatusBar.text = GameTooltipStatusBar:CreateFontString(ADDON_NAME.."StatusBarHealthText")
-		GameTooltipStatusBar.text:SetPoint("CENTER", GameTooltipStatusBar, 1, 0)
-		ns.UpdateGameTooltipStatusBarText()
-	end
 
 	GameTooltipStatusBar:HookScript("OnShow", function(self)
 		if ns.Config.showBar then
@@ -462,22 +421,6 @@ function ns.UpdateGameTooltipFont()
 end
 
 
-function ns.UpdateGameTooltipStatusBarVisibility()
-	if not GameTooltipStatusBar.text then return end
-
-	if ns.Config.showBar and ns.Config.showBarValues then
-		GameTooltipStatusBar.text:Show()
-	else
-		GameTooltipStatusBar.text:Hide()
-	end
-end
-
-function ns.UpdateGameTooltipStatusBarText()
-	if not GameTooltipStatusBar.text then return end
-
-	GameTooltipStatusBar.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.barFontFace), ns.Config.barFontSize, ns.Config.barFontFlags)
-end
-
 function ns.UpdateGameTooltipStatusBarTexture()
 	GameTooltipStatusBar:SetStatusBarTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
 	GameTooltipStatusBar.bg:SetTexture(LibStub("LibSharedMedia-3.0"):Fetch("statusbar", ns.Config.barTexture))
@@ -500,11 +443,6 @@ end
 --------------------------------------------------------------------------------------------------------
 
 local function RegisterCommonHooks()
-	-- the flavor has to be in place before any hook below can fire
-	ns.FlavorModule = ns.RetailModule or ns.EraModule
-
-	ns.GetHealthBarText = ns.FlavorModule.GetHealthBarText
-
 	for _, tip in next, ns.tooltips do
 		ns.SetDefaultNineSliceColor(tip)
 	end
@@ -516,7 +454,7 @@ local function RegisterCommonHooks()
 
 	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	ns.FlavorModule.Init()
+	ns.RetailModule.Init()
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -525,7 +463,6 @@ end
 
 function ns:PLAYER_LOGIN()
 	ns.UpdateGameTooltipStatusBarTexture()
-	ns.UpdateGameTooltipStatusBarText()
 	ns.UpdateGameTooltipFont()
 	RefreshPlayerLevel()
 end

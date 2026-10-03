@@ -1,4 +1,4 @@
-## Interface: 11508, 16001, 120100
+## Interface: 16001, 120100
 
 ## Title: ManiaTip
 ## Notes: Tooltip Enhancement Addon
@@ -19,5 +19,4 @@ Locales\ruRU.lua
 Addon.lua
 UnitInfo.lua
 Flavors\Retail.lua [AllowLoadGameType mainline]
-Flavors\Era.lua [AllowLoadGameType vanilla]
 Config.lua
