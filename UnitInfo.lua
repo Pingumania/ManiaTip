@@ -96,13 +96,12 @@ local function CreateStatusTags()
 		width = math.max(width, tag:GetUnboundedStringWidth())
 	end
 
-	statusSpacer = STATUS_SPACER:format(width)
-
 	local probe = GameTooltip:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
 	probe:Hide()
-	probe:SetText(statusSpacer)
-	width = probe:GetUnboundedStringWidth()
-	statusSpacer = " "..statusSpacer
+	probe:SetText(STATUS_SPACER:format(width))
+
+	local scale = width / probe:GetUnboundedStringWidth()
+	statusSpacer = " "..STATUS_SPACER:format(math.ceil(width * scale))
 
 	for _, statusTag in ipairs(statusTags) do
 		statusTag:SetPoint("LEFT", GameTooltipTextLeft1, "RIGHT", -width, 0)
