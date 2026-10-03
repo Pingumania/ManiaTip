@@ -44,6 +44,15 @@ local function RemoveUnwantedLines(data, unit)
 	end
 end
 
+local function HideRightClickText(frame)
+	if not ns.Config.hideRightClickText or not frame.UpdateTooltip or GameTooltip:IsForbidden() then
+		return
+	end
+
+	GameTooltip:SetUnit(frame.unit, frame.hideStatusOnTooltip)
+	GameTooltip:Show()
+end
+
 --------------------------------------------------------------------------------------------------------
 -- Unit tooltip
 --------------------------------------------------------------------------------------------------------
@@ -187,6 +196,8 @@ function Retail.Init()
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, ns.OnTooltipSetUnitAura)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, ns.OnTooltipSetToy)
 	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, ns.OnTooltipSetMacro)
+
+	hooksecurefunc("UnitFrame_UpdateTooltip", HideRightClickText)
 
 	ns:ContinueOnAddOnLoaded("Blizzard_Communities", InitCommunitiesHook)
 end

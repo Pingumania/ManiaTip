@@ -54,6 +54,7 @@ local function CreateConfig()
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
 		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },
 		{ key = "hideSubFactionText", type = "toggle", title = L["hideSubFactionText"], default = ns.defaults.hideSubFactionText },
+		{ key = "hideRightClickText", type = "toggle", title = L["hideRightClickText"], default = ns.defaults.hideRightClickText, hidden = not ns.RetailModule },
 		{ key = "showId", type = "toggle", title = L["showId"], default = ns.defaults.showId },
 		{ key = "tipScale", type = "slider", title = L["tipScale"], default = ns.defaults.tipScale, minValue = 0.5, maxValue = 2, valueStep = 0.05 },
 

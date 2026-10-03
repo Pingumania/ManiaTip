@@ -20,6 +20,7 @@ ns.defaults = {
 	hidePvpText = false,
 	hideFactionText = false,
 	hideSubFactionText = false,
+	hideRightClickText = false,
 
 	guildColor = 'ffc41f3b',
 	sameGuildColor = 'ffff3b8f',
