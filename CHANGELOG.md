@@ -1,3 +1,12 @@
+### v18
+
+* Add option to show names in Latin letters, for players, realms, guilds and targets
+* Fix the AFK, DND and offline tags on player tooltips
+* Fix the level and specialization lines on player tooltips
+* Fix guild member tooltips in the Communities window for rows that were already shown
+
+*****
+
 ### v17 - 2026-10-02
 
 * Fix errors on new Forever build
