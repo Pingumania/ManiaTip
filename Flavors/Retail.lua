@@ -65,6 +65,15 @@ local function FindNameFromData(data)
 	end
 end
 
+local function FindLevelLineFromData(data)
+	for i, lineData in ipairs(data.lines) do
+		local text = PlainText(lineData.leftText)
+		if text and strfind(text, "^"..LEVEL.." [%d%?]+") then
+			return lineData.lineIndex or i
+		end
+	end
+end
+
 local function GetTooltipUnit(tip)
 	local info = tip.processingInfo
 	local unit = info and info.getterArgs and info.getterArgs[1]
@@ -99,7 +108,12 @@ local function OnTooltipSetUnit(tip, data)
 
 	-- Level lines report type None instead of UnitLevel, so NPC level lines
 	-- can't be told apart from subtitles while text is secret.
-	if isPlayer then
+	if not isPlayer then
+		local levelLine = FindLevelLineFromData(data)
+		if levelLine then
+			_G["GameTooltipTextLeft"..levelLine]:SetText(levelText)
+		end
+	else
 		local levelLine = GetGuildInfo(unit) and 3 or 2
 		_G["GameTooltipTextLeft"..levelLine]:SetText(levelText)
 
