@@ -330,17 +330,12 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 end
 
 -- Returns the formatted guild line text, or nil if the unit has none / is not a player.
-local function BuildGuildDisplay(unit, isPlayer)
-	if not isPlayer then
-		return nil
-	end
-
-	local guild = Plain(GetGuildInfo(unit))
+local function BuildGuildDisplay(unit, guild)
 	if not guild then
 		return nil
 	end
 
-	local sameGuild = guild == GetGuildInfo("player")
+	local sameGuild = Plain(UnitIsInMyGuild(unit), false)
 	local guildColorMarkup = '|cff' .. (sameGuild and ns.Config.sameGuildColor or ns.Config.guildColor):sub(3)
 	return ("%s<%s>|r"):format(guildColorMarkup, Latin(guild))
 end
@@ -397,26 +392,236 @@ local function BuildTargetDisplay(unit)
 	return text..GetUnitReactionColor(target):GenerateHexColorMarkup()..UnitName(target)
 end
 
--- Returns: color (for the health bar hook), isPlayer, formatted level line text.
-function ns.ApplyUnitTooltip(tip, unit, classID, fullName)
-	local isPlayer = Plain(UnitIsPlayer(unit), classID ~= nil)
-
+local function ApplyUnitTooltip(tip, unit, classID, isPlayer, fullName, guild)
 	local color, nameString = BuildNameDisplay(unit, isPlayer, classID, fullName)
 	tip.NineSlice:SetBorderColor(color:GetRGBA())
 	GameTooltipStatusBar:SetStatusBarColor(color:GetRGBA())
 	_G["GameTooltipTextLeft1"]:SetFormattedText("%s|r", nameString)
 
-	local guildText = BuildGuildDisplay(unit, isPlayer)
+	local guildText = BuildGuildDisplay(unit, guild)
 	if guildText then
 		GameTooltipTextLeft2:SetFormattedText("%s", guildText)
 	end
 
 	local targetText = BuildTargetDisplay(unit)
 	if targetText then
-		ns.AddEmptyTrailingLine(tip):SetText(targetText)
+		tip:AddLine(" ")
+		tip:GetLeftLine(tip:NumLines()):SetText(targetText)
 	end
 
 	ns.activeUnit.color = color
 
-	return color, isPlayer, BuildLevelDisplay(unit, isPlayer, classID)
+	return BuildLevelDisplay(unit, isPlayer, classID)
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Faction/PvP text hiding
+--------------------------------------------------------------------------------------------------------
+
+local function GetTooltipUnit(tip)
+	local info = tip.processingInfo
+	local unit = info and info.getterArgs and info.getterArgs[1]
+	if type(unit) == "string" and UnitExists(unit) then
+		return unit
+	end
+
+	if UnitExists("mouseover") then
+		return "mouseover"
+	end
+end
+
+local function FindLevelLineFromData(data)
+	for i, lineData in ipairs(data.lines) do
+		local text = Plain(lineData.leftText)
+		if text and strfind(text, "^"..LEVEL.." [%d%?]+") then
+			return i
+		end
+	end
+end
+
+-- PvP and faction lines come as TooltipDataLineType.None, so they are found by text or position,
+-- which fails once the text is secret. Proper filtering needs Blizzard to give them their own line type.
+local droppedLines = {}
+local current = {}
+
+local function PrepareUnitLines(tip, data)
+	wipe(droppedLines)
+	wipe(current)
+	if tip ~= GameTooltip then
+		return
+	end
+
+	local unit = GetTooltipUnit(tip)
+	if not unit then
+		return
+	end
+
+	local _, classID = UnitClassFromGUID(data.guid)
+	local isPlayer = Plain(UnitIsPlayer(unit), classID ~= nil)
+	current.unit, current.classID, current.isPlayer = unit, classID, isPlayer
+	if isPlayer then
+		local guild = GetGuildInfo(unit)
+		if not issecretvalue(guild) then
+			current.guild = guild
+			current.levelLine = guild and 3 or 2
+		end
+	else
+		current.levelLine = FindLevelLineFromData(data)
+	end
+
+	if not (ns.Config.hideFactionText or ns.Config.hidePvpText) then
+		return
+	end
+
+	local levelLine = current.levelLine
+	local factionLine = levelLine and data.lines[levelLine + (isPlayer and 2 or 1)]
+	local text
+	for _, line in ipairs(data.lines) do
+		text = Plain(line.leftText)
+		if text == PVP_ENABLED then
+			droppedLines[line] = ns.Config.hidePvpText
+		elseif line == factionLine or text == FACTION_ALLIANCE or text == FACTION_HORDE then
+			droppedLines[line] = ns.Config.hideFactionText
+		end
+	end
+end
+
+local function IsUnwantedLine(_, lineData)
+	return droppedLines[lineData]
+end
+
+local function HideRightClickText(frame)
+	if not ns.Config.hideRightClickText or not frame.UpdateTooltip or GameTooltip:IsForbidden() then
+		return
+	end
+
+	GameTooltip:SetUnit(frame.unit, frame.hideStatusOnTooltip)
+	GameTooltip:Show()
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Unit tooltip
+--------------------------------------------------------------------------------------------------------
+
+local function FindNameFromData(data)
+	for _, lineData in ipairs(data.lines) do
+		if lineData.type == Enum.TooltipDataLineType.UnitName then
+			return lineData.leftText
+		end
+	end
+end
+
+local function OnTooltipSetUnit(tip, data)
+	if tip ~= GameTooltip or not data then
+		return
+	end
+
+	ns.activeUnit = {}
+
+	local unit, levelLine = current.unit, current.levelLine
+	if not unit then
+		tip:Hide()
+		return
+	end
+
+	local fullName = FindNameFromData(data) or UnitName(unit)
+	local levelText = ApplyUnitTooltip(tip, unit, current.classID, current.isPlayer, fullName, current.guild)
+
+	if levelLine then
+		_G["GameTooltipTextLeft"..levelLine]:SetText(levelText)
+	end
+
+	if current.isPlayer and levelLine then
+		local specLine = _G["GameTooltipTextLeft"..(levelLine + 1)]
+		local text = specLine and specLine:GetText()
+		local hasText = issecretvalue(text) or text
+		if hasText and ns.Config.classColorText then
+			specLine:SetFormattedText("%s%s|r", C_ClassColor.GetClassColor(current.classID):GenerateHexColorMarkup(), text)
+		elseif hasText then
+			specLine:SetTextColor(HIGHLIGHT_FONT_COLOR:GetRGB())
+		end
+	end
+
+	tip:Show()
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Guild roster hover tooltip
+--------------------------------------------------------------------------------------------------------
+
+local function MemberList_OnEnter(self)
+	if not self.GetMemberInfo then
+		return
+	end
+
+	local info = self:GetMemberInfo()
+	if not info or not info.classID then
+		return
+	end
+
+	local classInfo = C_CreatureInfo.GetClassInfo(info.classID)
+
+	local name = info.name
+	if ns.Config.showRealm and ns.Config.showSameRealm then
+		if not strmatch(name, "%a+%-.+") then
+			name = name.."-"..GetRealmName()
+		end
+	elseif not ns.Config.showRealm then
+		name = gsub(name, "%-.+", "")
+	end
+	GameTooltipTextLeft1:SetFormattedText("%s", ns.ClassColorMarkup[classInfo.classFile]..name)
+
+	local raceInfo = info.race and C_CreatureInfo.GetRaceInfo(info.race)
+	if raceInfo and info.level then
+		local levelColor = ns.GetDifficultyLevelColor(info.level ~= -1 and info.level or 500)
+		local plainText = COMMUNITY_MEMBER_CHARACTER_INFO_FORMAT:format(info.level, raceInfo.raceName, classInfo.className)
+		local classText = classInfo.className
+		if ns.Config.classColorText then
+			classText = ns.ClassColorMarkup[classInfo.classFile]..classText.."|r"
+		end
+		for i = 2, GameTooltip:NumLines() do
+			local line = _G["GameTooltipTextLeft"..i]
+			if line:GetText() == plainText then
+				line:SetFormattedText("%s %s %s", levelColor..info.level.."|r", raceInfo.raceName, classText)
+				break
+			end
+		end
+	end
+
+	GameTooltip.NineSlice:SetBorderColor(ns.CLASS_COLORS[classInfo.classFile]:GetRGBA())
+	GameTooltip:Show()
+end
+
+local function MemberList_OnLeave()
+	GameTooltip:Hide()
+end
+
+local function InitCommunitiesHook()
+	local hooked = {}
+	local function HookMember(frame)
+		if not hooked[frame] then
+			frame:HookScript("OnEnter", MemberList_OnEnter)
+			frame:HookScript("OnLeave", MemberList_OnLeave)
+			hooked[frame] = true
+		end
+	end
+
+	CommunitiesFrame.MemberList.ScrollBox:ForEachFrame(HookMember)
+	ScrollUtil.AddAcquiredFrameCallback(CommunitiesFrame.MemberList.ScrollBox, function(_, frame)
+		HookMember(frame)
+	end)
+end
+
+--------------------------------------------------------------------------------------------------------
+-- Entry point
+--------------------------------------------------------------------------------------------------------
+
+function ns.InitUnitTooltip()
+	TooltipDataProcessor.AddTooltipPreCall(Enum.TooltipDataType.Unit, PrepareUnitLines)
+	TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataLineType.None, IsUnwantedLine)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Unit, OnTooltipSetUnit)
+
+	hooksecurefunc("UnitFrame_UpdateTooltip", HideRightClickText)
+
+	ns:ContinueOnAddOnLoaded("Blizzard_Communities", InitCommunitiesHook)
 end

@@ -19,5 +19,4 @@ Locales\enUS.lua
 Locales\ruRU.lua
 Addon.lua
 UnitInfo.lua
-Flavors\Retail.lua [AllowLoadGameType mainline]
 Config.lua

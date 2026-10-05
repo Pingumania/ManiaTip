@@ -32,7 +32,6 @@ ns.defaults = {
 
 	hidePvpText = false,
 	hideFactionText = false,
-	hideSubFactionText = false,
 	hideRightClickText = false,
 
 	guildColor = 'ffc41f3b',
@@ -341,23 +340,6 @@ function ns.AddIdLine(tip, id)
 	end
 end
 
--- Scans rendered lines for "Level NN" text
-function ns.FindLevelLineByText(tip)
-	for i = 2, tip:NumLines() do
-		local leftText = _G[tip:GetName().."TextLeft"..i]:GetText()
-		if leftText and strfind(leftText, "^"..LEVEL.." [%d%?]+") then
-			return i
-		end
-	end
-
-	return false
-end
-
-function ns.AddEmptyTrailingLine(tip)
-	tip:AddLine(" ")
-	return _G[tip:GetName().."TextLeft"..tip:NumLines()]
-end
-
 --------------------------------------------------------------------------------------------------------
 -- Item/Spell/Toy/Macro tooltips
 --------------------------------------------------------------------------------------------------------
@@ -417,12 +399,6 @@ local function OnTooltipSetMacro(tip, data)
 		ns.AddIdLine(tip, data.lines[1].tooltipID)
 	end
 end
-
-ns.OnTooltipSetItem = OnTooltipSetItem
-ns.OnTooltipSetSpell = OnTooltipSetSpell
-ns.OnTooltipSetUnitAura = OnTooltipSetUnitAura
-ns.OnTooltipSetToy = OnTooltipSetToy
-ns.OnTooltipSetMacro = OnTooltipSetMacro
 
 --------------------------------------------------------------------------------------------------------
 -- Anchor
@@ -519,7 +495,13 @@ local function RegisterCommonHooks()
 
 	hooksecurefunc("HealthBar_OnValueChanged", StatusBar_OnValueChanged)
 
-	ns.RetailModule.Init()
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.UnitAura, OnTooltipSetUnitAura)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Macro, OnTooltipSetMacro)
+
+	ns.InitUnitTooltip()
 end
 
 --------------------------------------------------------------------------------------------------------

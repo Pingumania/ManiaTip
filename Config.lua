@@ -72,7 +72,6 @@ local function CreateConfig()
 		{ key = "classColorText", type = "toggle", title = L["classColorText"], default = ns.defaults.classColorText },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
-		{ key = "hideSubFactionText", type = "toggle", title = L["hideSubFactionText"], default = ns.defaults.hideSubFactionText },
 		{ key = "hideRightClickText", type = "toggle", title = L["hideRightClickText"], default = ns.defaults.hideRightClickText },
 
 		{ type = "header", title = L["headerStatusTags"], tooltip = L["statusTagsDesc"] },
