@@ -51,9 +51,11 @@ ns.defaults = {
 
 	targetColor = { 1.000, 0.824, 0.000, 1.000 },
 
-	textFontFace = "Arial Narrow",
+	textFontFace = "Friz Quadrata TT",
 	textFontSize = 12,
 	textFontFlags = "NONE",
+	textFontSmooth = false,
+	textFontShadow = true,
 
 	barTexture = "Blizzard",
 
@@ -459,13 +461,26 @@ function ns.UpdateTooltipScale()
 	end
 end
 
+local TOOLTIP_FONTS = { GameTooltipText, GameTooltipHeaderText, GameTooltipTextSmall }
+
 function ns.UpdateGameTooltipFont()
 	local font = LibStub("LibSharedMedia-3.0"):Fetch("font", ns.Config.textFontFace) or ns.Config.textFontFace
 	local size = ns.Config.textFontSize
 	local flag = ns.Config.textFontFlags == "NONE" and "" or ns.Config.textFontFlags
+	if ns.Config.textFontSmooth then
+		flag = flag == "" and "SLUG" or flag..", SLUG"
+	end
 	GameTooltipText:SetFont(font, size, flag)
 	GameTooltipHeaderText:SetFont(font, size + 2, flag)
 	GameTooltipTextSmall:SetFont(font, size, flag)
+
+	local shadow = ns.Config.textFontShadow and 1 or 0
+	for _, fontObject in ipairs(TOOLTIP_FONTS) do
+		fontObject:SetShadowColor(0, 0, 0, 1)
+		fontObject:SetShadowOffset(shadow, -shadow)
+	end
+
+	ns.AnchorStatusTabs()
 end
 
 
