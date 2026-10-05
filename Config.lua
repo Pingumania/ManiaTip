@@ -8,81 +8,130 @@ local FLAG_OPTIONS = {
 	{ value = "THICKOUTLINE", label = L["thick"] },
 }
 
-local function CreateFontFaceRow(rowFrame)
-	return ns:CreateMediaDropdown(rowFrame, "font", function()
-		return ns.Config.textFontFace
-	end, function(value)
-		ns.Config.textFontFace = value
-		ns.UpdateGameTooltipFont()
-	end)
+local BORDER_OPTIONS = {
+	{ value = "blizzard", label = L["border_blizzard"] },
+	{ value = "chatBubble", label = L["border_chatBubble"] },
+}
+
+local STATUS_STYLE_OPTIONS = {
+	{ value = "icon", label = L["statusTagIcon"] },
+	{ value = "text", label = L["statusTagText"] },
+	{ value = "tab", label = L["statusTagTab"] },
+}
+
+local STATUS_POSITION_OPTIONS = {
+	{ value = "before", label = L["statusTagBefore"] },
+	{ value = "after", label = L["statusTagAfter"] },
+}
+
+local TAB_POSITION_OPTIONS = {
+	{ value = "TOPLEFT", label = L["tabTopLeft"] },
+	{ value = "TOPRIGHT", label = L["tabTopRight"] },
+	{ value = "RIGHTTOP", label = L["tabRightTop"] },
+	{ value = "RIGHTBOTTOM", label = L["tabRightBottom"] },
+	{ value = "LEFTTOP", label = L["tabLeftTop"] },
+	{ value = "LEFTBOTTOM", label = L["tabLeftBottom"] },
+}
+
+local function StatusTextRow(key)
+	local toggleKey = ns.STATUS_TEXT_TOGGLES[key]
+	return { key = key, type = "input", title = L[key], default = ns.defaults[key], toggleKey = toggleKey, toggleDefault = ns.defaults[toggleKey], gatedBy = "statusTagStyle", requiresValue = "text" }
 end
 
-local function CreateBarPreviewRow(mediaType, key, updateFn)
-	return function(rowFrame)
-		return ns:CreateMediaDropdown(rowFrame, mediaType, function()
-			return ns.Config[key]
-		end, function(value)
-			ns.Config[key] = value
-			updateFn()
-		end)
-	end
+local function ColorEntry(key, title, hasOpacity)
+	return { key = key, title = title, default = ns.defaults[key], hasOpacity = hasOpacity }
 end
-
-local CreateBarTextureRow = CreateBarPreviewRow("statusbar", "barTexture", ns.UpdateGameTooltipStatusBarTexture)
 
 local function CreateConfig()
-	ns:RegisterOptionCallback("tipScale", function()
-		ns.UpdateTooltipScale()
-	end)
+	ns:RegisterOptionCallback("tipScale", ns.UpdateTooltipScale)
+	ns:RegisterOptionCallback("textFontFace", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontSize", ns.UpdateGameTooltipFont)
 	ns:RegisterOptionCallback("textFontFlags", ns.UpdateGameTooltipFont)
+	ns:RegisterOptionCallback("textFontSmooth", ns.UpdateGameTooltipFont)
+	ns:RegisterOptionCallback("textFontShadow", ns.UpdateGameTooltipFont)
+	ns:RegisterOptionCallback("barTexture", ns.UpdateGameTooltipStatusBarTexture)
+	ns:RegisterOptionCallback("tooltipBorder", ns.UpdateTooltipBorders)
+	ns:RegisterOptionCallback("statusTabPosition", ns.AnchorStatusTabs)
+	for _, key in ipairs({ "statusColors", "statusColorOffline", "statusColorAFK", "statusColorDND" }) do
+		ns:RegisterOptionCallback(key, ns.UpdateStatusColors)
+	end
+	for key, toggleKey in next, ns.STATUS_TEXT_TOGGLES do
+		ns:RegisterOptionCallback(key, ns.UpdateStatusTexts)
+		ns:RegisterOptionCallback(toggleKey, ns.UpdateStatusTexts)
+	end
 
-
-	local settings = {
+	ns:RegisterSettings("ManiaTipDB", {
+		{ type = "header", title = L["headerName"] },
 		{ key = "showPlayerTitle", type = "toggle", title = L["showPlayerTitle"], default = ns.defaults.showPlayerTitle },
-		{ key = "transliterateNames", type = "toggle", title = L["transliterateNames"], default = ns.defaults.transliterateNames, hidden = not (C_Intl and C_Intl.Transliterate) },
 		{ key = "showRealm", type = "toggle", title = L["showRealm"], default = ns.defaults.showRealm, hidden = ns:IsForever() },
+		{ key = "showSameRealm", type = "toggle", title = L["showSameRealm"], default = ns.defaults.showSameRealm, requires = "showRealm", hidden = ns:IsForever() },
+		{ key = "transliterateNames", type = "toggle", title = L["transliterateNames"], default = ns.defaults.transliterateNames, hidden = not (C_Intl and C_Intl.Transliterate) },
+
+		{ type = "header", title = L["headerLines"] },
+		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },
 		{ key = "classColorText", type = "toggle", title = L["classColorText"], default = ns.defaults.classColorText },
 		{ key = "hidePvpText", type = "toggle", title = L["hidePvpText"], default = ns.defaults.hidePvpText },
 		{ key = "hideFactionText", type = "toggle", title = L["hideFactionText"], default = ns.defaults.hideFactionText },
-		{ key = "showTarget", type = "toggle", title = L["showTarget"], default = ns.defaults.showTarget },
 		{ key = "hideSubFactionText", type = "toggle", title = L["hideSubFactionText"], default = ns.defaults.hideSubFactionText },
 		{ key = "hideRightClickText", type = "toggle", title = L["hideRightClickText"], default = ns.defaults.hideRightClickText },
+
+		{ type = "header", title = L["headerStatusTags"], tooltip = L["statusTagsDesc"] },
+		{ key = "statusTagStyle", type = "menu", title = L["statusTagStyle"], default = ns.defaults.statusTagStyle, options = STATUS_STYLE_OPTIONS },
+		{ key = "statusTagPosition", type = "menu", title = L["statusTagPosition"], default = ns.defaults.statusTagPosition, options = STATUS_POSITION_OPTIONS, gatedBy = "statusTagStyle", requiresValue = { "icon", "text" } },
+		{ key = "statusTabPosition", type = "menu", title = L["statusTabPosition"], default = ns.defaults.statusTabPosition, options = TAB_POSITION_OPTIONS, gatedBy = "statusTagStyle", requiresValue = "tab" },
+		{ key = "statusColors", type = "toggle", title = L["statusColors"], default = ns.defaults.statusColors, gatedBy = "statusTagStyle", requiresValue = { "text", "tab" } },
+		{ type = "colors", title = L["rowColors"], requires = "statusColors", settings = {
+			ColorEntry("statusColorOffline", L["statusOffline"]),
+			ColorEntry("statusColorAFK", L["statusAFK"]),
+			ColorEntry("statusColorDND", L["statusDND"]),
+		} },
+		StatusTextRow("statusTextPrefix"),
+		StatusTextRow("statusTextSuffix"),
+
+		{ type = "header", title = L["headerIds"] },
 		{ key = "showId", type = "toggle", title = L["showId"], default = ns.defaults.showId },
-		{ key = "tipScale", type = "slider", title = L["tipScale"], default = ns.defaults.tipScale, minValue = 0.5, maxValue = 2, valueStep = 0.05 },
+		{ type = "colors", title = L["rowColors"], requires = "showId", settings = {
+			ColorEntry("idLabelColor", L["idLabelColor"]),
+			ColorEntry("idColor", L["idColor"]),
+		} },
+
+		{ type = "header", title = L["headerFrame"] },
+		{ key = "tooltipBorder", type = "menu", title = L["tooltipBorder"], default = ns.defaults.tooltipBorder, options = BORDER_OPTIONS },
+		{ key = "tipScale", type = "slider", title = L["tipScale"], default = ns.defaults.tipScale, minValue = 0.5, maxValue = 2, valueStep = 0.05, valueFormat = "%.2f" },
+		{ type = "colors", title = L["rowColors"], settings = {
+			ColorEntry("tooltipColor", L["tipColor"], true),
+			ColorEntry("tooltipBorderColor", L["tipBorderColor"]),
+		} },
 
 		{ type = "header", title = L["fontSettings"] },
-		{ type = "custom", title = L["textFontFace"], createControl = CreateFontFaceRow },
+		{ key = "textFontFace", type = "media", mediaType = "font", title = L["textFontFace"], default = ns.defaults.textFontFace },
 		{ key = "textFontSize", type = "slider", title = L["textFontSize"], default = ns.defaults.textFontSize, minValue = 1, maxValue = 26, valueStep = 1 },
 		{ key = "textFontFlags", type = "menu", title = L["textFontFlags"], default = ns.defaults.textFontFlags, options = FLAG_OPTIONS },
+		{ key = "textFontShadow", type = "toggle", title = L["textFontShadow"], default = ns.defaults.textFontShadow },
+		{ key = "textFontSmooth", type = "toggle", title = L["textFontSmooth"], default = ns.defaults.textFontSmooth },
 
 		{ type = "header", title = L["healthBarSettings"] },
 		{ key = "showBar", type = "toggle", title = L["showBar"], default = ns.defaults.showBar },
-		{ type = "custom", title = L["barTexture"], requires = "showBar", createControl = CreateBarTextureRow },
-	}
+		{ key = "barTexture", type = "media", mediaType = "statusbar", title = L["barTexture"], default = ns.defaults.barTexture, requires = "showBar" },
 
-	ns:RegisterSettings("ManiaTipDB", settings)
-
-	ns:RegisterSubSettings("Colors", {
-		{ type = "header", title = L["descTooltipColors"] },
-		{ key = "tooltipColor", type = "color", title = L["tipColor"], default = ns.defaults.tooltipColor },
-		{ key = "tooltipBorderColor", type = "color", title = L["tipBorderColor"], default = ns.defaults.tooltipBorderColor },
-
-		{ type = "header", title = L["descReactionColors"] },
-		{ key = "reactionColor1", type = "color", title = L["colReact1"], default = ns.defaults.reactionColor1 },
-		{ key = "reactionColor2", type = "color", title = L["colReact2"], default = ns.defaults.reactionColor2 },
-		{ key = "reactionColor3", type = "color", title = L["colReact3"], default = ns.defaults.reactionColor3 },
-		{ key = "reactionColor4", type = "color", title = L["colReact4"], default = ns.defaults.reactionColor4 },
-		{ key = "reactionColor5", type = "color", title = L["colReact5"], default = ns.defaults.reactionColor5 },
-		{ key = "reactionColor6", type = "color", title = L["colReact6"], default = ns.defaults.reactionColor6 },
-		{ key = "reactionColor7", type = "color", title = L["colReact7"], default = ns.defaults.reactionColor7 },
-
-		{ type = "header", title = L["descInfoColors"] },
-		{ key = "idLabelColor", type = "color", title = L["infoColor1"], default = ns.defaults.idLabelColor },
-		{ key = "idColor", type = "color", title = L["infoColor2"], default = ns.defaults.idColor },
-
-		{ key = "guildColor", type = "color", title = L["colGuild"], default = ns.defaults.guildColor },
-		{ key = "sameGuildColor", type = "color", title = L["colSameGuild"], default = ns.defaults.sameGuildColor },
+		{ type = "header", title = L["headerUnitColors"], tooltip = L["unitColorsDesc"] },
+		{ type = "colors", title = L["rowReaction"], settings = {
+			ColorEntry("reactionColor2", L["colReact2"]),
+			ColorEntry("reactionColor3", L["colReact3"]),
+			ColorEntry("reactionColor4", L["colReact4"]),
+		} },
+		{ type = "colors", title = L["rowAllies"], settings = {
+			ColorEntry("reactionColor5", L["colReact5"]),
+			ColorEntry("reactionColor6", L["colReact6"]),
+		} },
+		{ type = "colors", title = L["rowOther"], settings = {
+			ColorEntry("reactionColor1", L["colReact1"]),
+			ColorEntry("reactionColor7", L["colReact7"]),
+		} },
+		{ type = "colors", title = L["rowGuild"], settings = {
+			ColorEntry("guildColor", L["colGuild"]),
+			ColorEntry("sameGuildColor", L["colSameGuild"]),
+		} },
 	})
 end
 
