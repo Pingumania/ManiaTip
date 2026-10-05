@@ -231,17 +231,17 @@ end
 -- Shared tooltip visuals
 --------------------------------------------------------------------------------------------------------
 
-local TooltipLayout = {
-	["TopRightCorner"] = { atlas = "Tooltip-NineSlice-CornerTopRight" },
-	["TopLeftCorner"] = { atlas = "Tooltip-NineSlice-CornerTopLeft" },
-	["BottomLeftCorner"] = { atlas = "Tooltip-NineSlice-CornerBottomLeft" },
-	["BottomRightCorner"] = { atlas = "Tooltip-NineSlice-CornerBottomRight" },
-	["TopEdge"] = { atlas = "_Tooltip-NineSlice-EdgeTop" },
-	["BottomEdge"] = { atlas = "_Tooltip-NineSlice-EdgeBottom" },
-	["LeftEdge"] = { atlas = "!Tooltip-NineSlice-EdgeLeft" },
-	["RightEdge"] = { atlas = "!Tooltip-NineSlice-EdgeRight" },
-	["Center"] = { layer = "BACKGROUND", atlas = "Tooltip-NineSlice-Center", x = -4, y = 4, x1 = 4, y1 = -4 },
+local chatBubbleLayout = CopyTable(ns:GetPanelLayout())
+chatBubbleLayout.Center.atlas = "ChatBubble-NineSlice-Center"
+
+ns.TooltipLayouts = {
+	blizzard = NineSliceUtil.GetLayout("TooltipDefaultLayout"),
+	chatBubble = chatBubbleLayout,
 }
+
+function ns.GetTooltipLayout()
+	return ns.TooltipLayouts[ns.Config.tooltipBorder] or ns.TooltipLayouts.blizzard
+end
 
 function ns.SetDefaultNineSliceColor(tip)
 	if not tip or tip.IsEmbedded then
@@ -262,10 +262,18 @@ local function STT_SetBackdropStyle(tip)
 	end
 
 	if tip.NineSlice then
-		NineSliceUtil.ApplyLayout(tip.NineSlice, TooltipLayout)
+		NineSliceUtil.ApplyLayout(tip.NineSlice, ns.GetTooltipLayout())
 	end
 
 	ns.SetDefaultNineSliceColor(tip)
+end
+
+function ns.UpdateTooltipBorders()
+	for _, tip in next, ns.tooltips do
+		STT_SetBackdropStyle(tip)
+	end
+
+	ns.UpdateStatusTabBorders()
 end
 
 local itemQualityCache = {}
