@@ -72,54 +72,227 @@ end
 -- Status tags
 --------------------------------------------------------------------------------------------------------
 
-local STATUS_SPACER = "|TInterface\\Common\\spacer:1:%d|t"
-local statusTags, statusSpacer
+local STATUS_ICONS = {
+	"Interface\\FriendsFrame\\StatusIcon-Offline",
+	"Interface\\FriendsFrame\\StatusIcon-Away",
+	"Interface\\FriendsFrame\\StatusIcon-DnD",
+}
+local STATUS_TEXTS = { "DC", "AFK", "DND" }
+local STATUS_COLOR_KEYS = { "statusColorOffline", "statusColorAFK", "statusColorDND" }
+local INLINE_SPACER = "|TInterface\\Common\\spacer:1:"
 
-local function HideStatusTags()
-	for _, tag in ipairs(statusTags) do
-		tag:SetAlpha(0)
+local function BuildInlineTags(before, labels)
+	local tags = { before = before }
+	for i, label in ipairs(labels) do
+		if before then
+			tags[i] = { label..INLINE_SPACER, "|t " }
+		else
+			tags[i] = { " "..INLINE_SPACER, "|t"..label }
+		end
+	end
+	return tags
+end
+
+local STATUS_ICON_LABELS = {}
+for i, path in ipairs(STATUS_ICONS) do
+	STATUS_ICON_LABELS[i] = "|T"..path..":0|t"
+end
+
+local INLINE_TAGS = {
+	icon = BuildInlineTags(false, STATUS_ICON_LABELS),
+	iconBefore = BuildInlineTags(true, STATUS_ICON_LABELS),
+}
+
+ns.STATUS_TEXT_TOGGLES = {
+	statusTextPrefix = "useStatusTextPrefix",
+	statusTextSuffix = "useStatusTextSuffix",
+}
+
+local function GetStatusText(key)
+	if ns.Config[ns.STATUS_TEXT_TOGGLES[key]] then
+		return ns.Config[key]
+	end
+
+	return ns.defaults[key]
+end
+
+function ns.UpdateStatusTexts()
+	local prefix, suffix = GetStatusText("statusTextPrefix"), GetStatusText("statusTextSuffix")
+	local labels = {}
+	local color
+	for i, text in ipairs(STATUS_TEXTS) do
+		color = ns.Config.statusColors and ns.Config[STATUS_COLOR_KEYS[i]] or "ffffffff"
+		labels[i] = "|c"..color..prefix..text..suffix.."|r"
+	end
+
+	INLINE_TAGS.text = BuildInlineTags(false, labels)
+	INLINE_TAGS.textBefore = BuildInlineTags(true, labels)
+end
+
+function ns.UpdateStatusColors()
+	ns.UpdateStatusTabColors()
+	ns.UpdateStatusTexts()
+end
+
+local TAB_MARGIN = 4
+local TAB_PADDING = 12
+local TAB_INSET = 4
+local TAB_OVERLAP = 10
+local TAB_SINK = 2
+local TAB_ICON_OFFSET = 2.5
+local TAB_POSITIONS = {
+	TOPLEFT = { "TOP", "LEFT" },
+	TOPRIGHT = { "TOP", "RIGHT" },
+	RIGHTTOP = { "RIGHT", "TOP" },
+	RIGHTBOTTOM = { "RIGHT", "BOTTOM" },
+	LEFTTOP = { "LEFT", "TOP" },
+	LEFTBOTTOM = { "LEFT", "BOTTOM" },
+}
+
+local tabs
+
+local function SetAlphaFromStatus(regions, unit)
+	regions[1]:SetAlphaFromBoolean(UnitIsConnected(unit), 0, 1)
+	regions[2]:SetAlphaFromBoolean(UnitIsAFK(unit), 1, 0)
+	regions[3]:SetAlphaFromBoolean(UnitIsDND(unit), 1, 0)
+end
+
+local function HideTabs()
+	for _, tab in ipairs(tabs) do
+		tab:SetAlpha(0)
 	end
 end
 
-local function CreateStatusTags()
-	statusTags = {}
-
-	local width = 0
-	local tag
-
-	for i, text in ipairs({ "<DC>", "<AFK>", "<DND>" }) do
-		tag = GameTooltip:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
-		tag:SetText(text)
-		tag:SetTextColor(WHITE_FONT_COLOR:GetRGB())
-		tag:SetAlpha(0)
-		statusTags[i] = tag
-		width = math.max(width, tag:GetUnboundedStringWidth())
+function ns.AnchorStatusTabs()
+	if not tabs then
+		return
 	end
 
-	local probe = GameTooltip:CreateFontString(nil, "ARTWORK", "GameTooltipHeaderText")
-	probe:Hide()
-	probe:SetText(STATUS_SPACER:format(width))
+	local side, align = unpack(TAB_POSITIONS[ns.Config.statusTabPosition] or TAB_POSITIONS.TOPRIGHT)
+	local offset = (align == "LEFT" or align == "BOTTOM") and TAB_INSET or -TAB_INSET
+	local opposite = side == "LEFT" and "RIGHT" or "LEFT"
+	local inward = side == "LEFT" and 1 or -1
+	local _, size = GameTooltipHeaderText:GetFont()
+	size = math.ceil(size)
+	local length, thickness = size + TAB_PADDING, size + TAB_MARGIN
 
-	local scale = width / probe:GetUnboundedStringWidth()
-	statusSpacer = " "..STATUS_SPACER:format(math.ceil(width * scale))
+	for _, clip in ipairs(tabs) do
+		clip:ClearAllPoints()
+		clip.tab:ClearAllPoints()
+		clip.icon:ClearAllPoints()
+		clip.icon:SetSize(size, size)
 
-	for _, statusTag in ipairs(statusTags) do
-		statusTag:SetPoint("LEFT", GameTooltipTextLeft1, "RIGHT", -width, 0)
+		if side == "TOP" then
+			clip:SetSize(length, thickness)
+			clip:SetPoint("BOTTOM"..align, GameTooltip, "TOP"..align, offset, -TAB_SINK)
+			clip.icon:SetPoint("CENTER", clip, 0, -TAB_ICON_OFFSET)
+			clip.tab:SetPoint("TOPLEFT")
+			clip.tab:SetPoint("TOPRIGHT")
+			clip.tab:SetHeight(thickness + TAB_OVERLAP)
+		else
+			clip:SetSize(thickness, length)
+			clip:SetPoint(align..opposite, GameTooltip, align..side, inward * TAB_SINK, offset)
+			clip.icon:SetPoint("CENTER", clip, inward * TAB_ICON_OFFSET, 0)
+			clip.tab:SetPoint("TOP"..side)
+			clip.tab:SetPoint("BOTTOM"..side)
+			clip.tab:SetWidth(thickness + TAB_OVERLAP)
+		end
+	end
+end
+
+function ns.UpdateStatusTabColors()
+	if not tabs then
+		return
 	end
 
-	GameTooltip:HookScript("OnTooltipCleared", HideStatusTags)
+	for i, clip in ipairs(tabs) do
+		if ns.Config.statusColors then
+			clip.tab:SetBorderColor(CreateColorFromHexString(ns.Config[STATUS_COLOR_KEYS[i]]):GetRGBA())
+		else
+			clip.tab:SetBorderColor(GameTooltip.NineSlice:GetBorderColor())
+		end
+	end
+end
+
+function ns.UpdateStatusTabBorders()
+	if not tabs then
+		return
+	end
+
+	for _, clip in ipairs(tabs) do
+		NineSliceUtil.ApplyLayout(clip.tab, ns.GetTooltipLayout())
+		clip.tab:SetCenterColor(GameTooltip.NineSlice:GetCenterColor())
+	end
+
+	ns.UpdateStatusTabColors()
+end
+
+local function CreateTabs()
+	local clip, tab
+
+	tabs = {}
+	for i = 1, #STATUS_ICONS do
+		clip = CreateFrame("Frame", nil, GameTooltip)
+		clip:SetFrameLevel(math.max(GameTooltip:GetFrameLevel() - 1, 0))
+		clip:SetClipsChildren(true)
+		clip:SetAlpha(0)
+
+		tab = CreateFrame("Frame", nil, clip, "NineSlicePanelTemplate")
+		tab:SetUsingParentLevel(true)
+		NineSliceUtil.ApplyLayout(tab, ns.GetTooltipLayout())
+		tab:SetCenterColor(GameTooltip.NineSlice:GetCenterColor())
+
+		clip.tab = tab
+		clip.icon = tab:CreateTexture(nil, "OVERLAY")
+		clip.icon:SetTexture(STATUS_ICONS[i])
+		tabs[i] = clip
+	end
+
+	ns.AnchorStatusTabs()
+	ns.UpdateStatusTabColors()
+
+	GameTooltip:HookScript("OnTooltipCleared", HideTabs)
+
+	hooksecurefunc(GameTooltip.NineSlice, "SetCenterColor", function(_, ...)
+		for _, statusTab in ipairs(tabs) do
+			statusTab.tab:SetCenterColor(...)
+		end
+	end)
+	hooksecurefunc(GameTooltip.NineSlice, "SetBorderColor", function(_, ...)
+		if ns.Config.statusColors then
+			return
+		end
+
+		for _, statusTab in ipairs(tabs) do
+			statusTab.tab:SetBorderColor(...)
+		end
+	end)
+end
+
+local function InlineTag(value, ifTrue, ifFalse, tag)
+	local flag = C_StringUtil.TruncateWhenZero(C_CurveUtil.EvaluateColorValueFromBoolean(value, ifTrue, ifFalse))
+	return C_StringUtil.WrapString(flag, tag[1], tag[2])
 end
 
 local function ShowStatusTags(unit)
-	if not statusTags then
-		CreateStatusTags()
+	local style = ns.Config.statusTagStyle
+
+	if style == "tab" then
+		if not tabs then
+			CreateTabs()
+		end
+
+		SetAlphaFromStatus(tabs, unit)
+		return "", ""
 	end
 
-	statusTags[1]:SetAlphaFromBoolean(UnitIsConnected(unit), 0, 1)
-	statusTags[2]:SetAlphaFromBoolean(UnitIsAFK(unit), 1, 0)
-	statusTags[3]:SetAlphaFromBoolean(UnitIsDND(unit), 1, 0)
+	local tags = INLINE_TAGS[style..(ns.Config.statusTagPosition == "before" and "Before" or "")] or INLINE_TAGS.icon
+	local text = InlineTag(UnitIsConnected(unit), 0, 1, tags[1])..InlineTag(UnitIsAFK(unit), 1, 0, tags[2])..InlineTag(UnitIsDND(unit), 1, 0, tags[3])
+	if tags.before then
+		return text, ""
+	end
 
-	return statusSpacer
+	return "", text
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -152,7 +325,8 @@ local function BuildNameDisplay(unit, isPlayer, classID, fullName)
 		nameString = nameString..(realm and "-"..Latin(realm) or "")
 	end
 
-	return color, nameString..ShowStatusTags(unit)
+	local before, after = ShowStatusTags(unit)
+	return color, before..nameString..after
 end
 
 -- Returns the formatted guild line text, or nil if the unit has none / is not a player.
