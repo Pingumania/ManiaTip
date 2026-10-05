@@ -79,15 +79,15 @@ local STATUS_ICONS = {
 }
 local STATUS_TEXTS = { "DC", "AFK", "DND" }
 local STATUS_COLOR_KEYS = { "statusColorOffline", "statusColorAFK", "statusColorDND" }
-local INLINE_SPACER = "|TInterface\\Common\\spacer:1:"
+local INLINE_FLAG_TEXTURE = "|TInterface\\Common\\spacer:1:"
 
 local function BuildInlineTags(before, labels)
 	local tags = { before = before }
 	for i, label in ipairs(labels) do
 		if before then
-			tags[i] = { label..INLINE_SPACER, "|t " }
+			tags[i] = { label..INLINE_FLAG_TEXTURE, "|t " }
 		else
-			tags[i] = { " "..INLINE_SPACER, "|t"..label }
+			tags[i] = { " "..INLINE_FLAG_TEXTURE, "|t"..label }
 		end
 	end
 	return tags
