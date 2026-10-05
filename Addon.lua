@@ -217,6 +217,32 @@ local function StatusBar_OnValueChanged(self)
 	GameTooltipStatusBar:SetStatusBarColor(ns.activeUnit.color:GetRGBA())
 end
 
+local function SnapToPixelGrid(tip)
+	ns:SnapToPixelGrid(tip)
+end
+
+local snapping = setmetatable({}, { __mode = "k" })
+
+local function SnapDefaultAnchored(tip)
+	if snapping[tip] then
+		SnapToPixelGrid(tip)
+	end
+end
+
+local function StopSnapping(tip)
+	snapping[tip] = false
+end
+
+local function StartSnapping(tip)
+	if snapping[tip] == nil then
+		tip:HookScript("OnSizeChanged", SnapDefaultAnchored)
+		tip:HookScript("OnTooltipCleared", StopSnapping)
+	end
+
+	snapping[tip] = true
+	SnapToPixelGrid(tip)
+end
+
 local function OnTooltipCleared(tip)
 	if tip.ItemTooltip and not tip.ItemTooltip:IsShown() then
 		tip:SetPadding(0, 0)
@@ -406,6 +432,7 @@ local function GTT_SetDefaultAnchor(tip, parent)
 	end
 
 	tip:SetOwner(parent, "ANCHOR_NONE")
+	StartSnapping(tip)
 end
 
 --------------------------------------------------------------------------------------------------------
@@ -469,6 +496,8 @@ local function RegisterCommonHooks()
 	end
 
 	GameTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
+	ItemRefTooltip:HookScript("OnSizeChanged", SnapToPixelGrid)
+	ItemRefTooltip:HookScript("OnDragStop", SnapToPixelGrid)
 	ItemRefTooltip:HookScript("OnTooltipCleared", OnTooltipCleared)
 	hooksecurefunc("GameTooltip_SetDefaultAnchor", GTT_SetDefaultAnchor)
 	hooksecurefunc("SharedTooltip_SetBackdropStyle", STT_SetBackdropStyle)
