@@ -1,3 +1,16 @@
+### v19
+
+* Add option to hide the right-click hint on unit frames
+* Add status tag display options
+* Add tooltip border styles
+* Add font shadow and smooth text options
+* Add addon list icon
+* Merge the two faction options into a single "Hide the faction line" option
+* All options are now on a single page
+* Fix the NPC level line missing when the unit is not restricted
+
+*****
+
 ### v18
 
 * Add option to show names in Latin letters, for players, realms, guilds and targets
