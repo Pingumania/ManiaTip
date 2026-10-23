@@ -1,3 +1,9 @@
+### v20
+
+* Update for patch 12.1.5
+
+*****
+
 ### v19
 
 * Add option to hide the right-click hint on unit frames

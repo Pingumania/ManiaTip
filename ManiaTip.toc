@@ -1,4 +1,4 @@
-## Interface: 16001, 120100
+## Interface: 120105, 16001
 
 ## Title: ManiaTip
 ## Notes: Tooltip Enhancement Addon
