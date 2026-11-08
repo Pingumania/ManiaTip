@@ -250,6 +250,7 @@ local function OnTooltipCleared(tip)
 	end
 
 	ns.SetDefaultNineSliceColor(tip)
+	GameTooltip_ClearStatusBarWatch(tip)
 
 	ns.activeUnit = {}
 end
