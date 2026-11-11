@@ -171,17 +171,22 @@ end
 -- Player level tracking
 --------------------------------------------------------------------------------------------------------
 
-local function GetQuestGreenRange()
-	if UnitQuestTrivialLevelRange then
-		return UnitQuestTrivialLevelRange("player")
+local function GetGrayLevel(level)
+	if ns:IsForever() then
+		if level < 40 then
+			return level - math.floor(level / 10) - 5
+		elseif level < 60 then
+			return level - math.floor(level / 5) - 1
+		end
+		return level - 9
 	end
 
-	return _G.GetQuestGreenRange()
+	return level - UnitQuestTrivialLevelRange("player") - 1
 end
 
 local function RefreshPlayerLevel()
 	ns.playerLevel = UnitLevel("player")
-	ns.questGreenRange = GetQuestGreenRange()
+	ns.grayLevel = GetGrayLevel(ns.playerLevel)
 end
 
 function ns.GetDifficultyLevelColor(level)
@@ -197,7 +202,7 @@ function ns.GetDifficultyLevelColor(level)
 		return DIFFICULT_DIFFICULTY_COLOR_CODE
 	elseif diff >= -2 then
 		return FAIR_DIFFICULTY_COLOR_CODE
-	elseif -diff <= ns.questGreenRange then
+	elseif level > ns.grayLevel then
 		return EASY_DIFFICULTY_COLOR_CODE
 	else
 		return TRIVIAL_DIFFICULTY_COLOR_CODE
