@@ -1,3 +1,10 @@
+### v21
+
+* Fix gray and green level colors in WoW Forever
+* Fix the health bar staying linked to the previous unit after the tooltip clears
+
+*****
+
 ### v20
 
 * Update for patch 12.1.5
