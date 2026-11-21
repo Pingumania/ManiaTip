@@ -1,3 +1,9 @@
+### v22
+
+* Fix a trailing dash after player names in WoW Forever
+
+*****
+
 ### v21
 
 * Fix gray and green level colors in WoW Forever

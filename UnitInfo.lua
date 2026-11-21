@@ -562,7 +562,7 @@ local function MemberList_OnEnter(self)
 	local classInfo = C_CreatureInfo.GetClassInfo(info.classID)
 
 	local name = info.name
-	if ns.Config.showRealm and ns.Config.showSameRealm then
+	if ns.Config.showRealm and ns.Config.showSameRealm and not ns:IsForever() then
 		if not strmatch(name, "%a+%-.+") then
 			name = name.."-"..GetRealmName()
 		end
